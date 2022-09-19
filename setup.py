@@ -25,7 +25,7 @@ except:
 # region Basic Information
 here = os.path.abspath(os.path.dirname(__file__))
 py_version = sys.version_info[:2]
-NAME = ""
+NAME = "hugg"
 AUTHOR = 'Miles Frantz'
 EMAIL = 'frantzme@vt.edu'
 DESCRIPTION = 'My short description for my project.'
@@ -120,7 +120,8 @@ setup(
 	entry_points={
 	},
 	install_requires=[
-		REQ
+		"datasets",
+		"huggingface_hub"
 	],
 	include_package_data=True,
 	classifiers=[
