@@ -128,7 +128,7 @@ class face(object):
         return [self[x] if grab else x for x in self.files() if lambda_search(x)]
 
     def find(self,lambda_search,grab=True):
-        current = self.find_all(lambda_search)
+        current = self.find_all(lambda_search,False)
         if len(current) > 1:
             print("There are too many files found")
         elif len(current) == 1:
