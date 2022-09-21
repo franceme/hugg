@@ -123,6 +123,18 @@ class face(object):
                 revision=revision
             )
         return False
+
+    def find_all(self,lambda_search):
+        return [x for x in self.files() if lambda_search(x)]
+
+    def find(self,lambda_search):
+        current = self.find_all(lambda_search)
+        if len(current) > 1:
+            print("There are too many files found")
+        elif len(current) == 1:
+            return current[0]
+        return None
+
     def __enter__(self):
         self.open()
         return self
