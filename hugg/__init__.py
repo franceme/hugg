@@ -125,14 +125,14 @@ class face(object):
         return False
 
     def find_all(self,lambda_search,grab=True):
-        return [repo[x] if grab else x for x in self.files() if lambda_search(x)]
+        return [self[x] if grab else x for x in self.files() if lambda_search(x)]
 
     def find(self,lambda_search,grab=True):
         current = self.find_all(lambda_search)
         if len(current) > 1:
             print("There are too many files found")
         elif len(current) == 1:
-            return repo[current[0]] if grab else current[0]
+            return self[current[0]] if grab else current[0]
         return None
 
     def __enter__(self):
