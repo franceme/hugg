@@ -3,7 +3,7 @@ from pathlib import Path
 from huggingface_hub import HfApi
 
 class face(object):
-    def __init__(self,repo,use_auth=True,repo_type="dataset"):
+    def __init__(self,repo,use_auth=True,repo_type="dataset",clear_cache=False):
         """
         https://rebrand.ly/hugface
 
@@ -18,6 +18,17 @@ class face(object):
         self.auth = use_auth
         self.downloaded_files = []
         self.opened = False
+        self.clear_cache = clear_cache
+
+    def clearcache(self):
+        if self.clear_cache:
+            pathings = [x for x in os.walk(Path.home()) if self.repo.replace('/','--') in x]
+            if len(pathings) > 0:
+                try:
+                    for y in pathings:
+                        os.system("yes|rm -r " + str(y))
+                except:
+                    pass
 
     def open(self):
         if isinstance(self.auth,str):
@@ -37,6 +48,7 @@ class face(object):
                 with open(f"{hugging_face}/token","a") as writer:
                     writer.write(self.auth)
             self.auth = True
+        self.clearcache()
         self.opened = True
         return
     def close(self):
@@ -50,20 +62,28 @@ class face(object):
                     print("Failed to remove the cached file " +str(foil))
                     print(e)
                     pass
+        self.clearcache()
         return
-    def download(self, file_path=None,revision=None):
+    def download(self, file_path=None,revision=None,download_to=None):
         if not self.opened:
             self.open()
         #https://huggingface.co/docs/huggingface_hub/v0.9.0/en/package_reference/file_download#huggingface_hub.hf_hub_download
         if file_path and isinstance(file_path,str):
             from huggingface_hub import hf_hub_download
-            return hf_hub_download(
+            current_file = hf_hub_download(
                 repo_id=self.repo,
                 filename=file_path,
                 revision=revision,
                 repo_type=self.repo_type,
                 use_auth_token=self.auth
             )
+            if download_to:
+                try:
+                    os.rename(current_file,download_to)
+                    current_file = download_to
+                except:
+                    pass
+            return current_file
         return None
     def upload(self, path=None,path_in_repo=None):
         if not self.opened:
