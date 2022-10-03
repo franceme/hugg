@@ -137,7 +137,7 @@ class face(mem):
         return
     def download(self, file_path=None,download_to=None):
         if not self.opened:
-            self.open()
+            self.login()
         #https://huggingface.co/docs/huggingface_hub/v0.9.0/en/package_reference/file_download#huggingface_hub.hf_hub_download
         if file_path and isinstance(file_path,str):
             from huggingface_hub import hf_hub_download
@@ -157,7 +157,7 @@ class face(mem):
         return None
     def upload(self, path=None,path_in_repo=None):
         if not self.opened:
-            self.open()
+            self.login()
         if path:
             if isinstance(path,str) and os.path.isfile(path):
                 #https://huggingface.co/docs/huggingface_hub/v0.9.0/en/package_reference/hf_api#huggingface_hub.HfApi.upload_file
@@ -181,7 +181,7 @@ class face(mem):
         return False
     def files(self):
         if not self.opened:
-            self.open()
+            self.login()
         # https://huggingface.co/docs/huggingface_hub/v0.9.0/en/package_reference/hf_api#huggingface_hub.HfApi.list_repo_files
         return self.api.list_repo_files(
             repo_id=self.repo,
@@ -202,7 +202,7 @@ class face(mem):
         
     def delete_file(self,path_in_repo=None):
         if not self.opened:
-            self.open()
+            self.login()
         # https://huggingface.co/docs/huggingface_hub/v0.9.0/en/package_reference/hf_api#huggingface_hub.HfApi.delete_file
         if path_in_repo:
             self.api.delete_file(
