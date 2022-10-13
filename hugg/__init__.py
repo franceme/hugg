@@ -1,4 +1,4 @@
-import os, sys,types,importlib.machinery
+import os,sys,types,importlib.machinery,shutil
 from pathlib import Path
 from huggingface_hub import HfApi
 from github import Github
@@ -149,8 +149,8 @@ class face(mem):
             )
             if download_to:
                 try:
-                    os.rename(current_file,download_to)
-                    current_file = download_to
+                    shutil.move(current_file, os.path.basename(current_file))
+                    current_file = os.path.basename(current_file)
                 except:
                     pass
             return current_file
