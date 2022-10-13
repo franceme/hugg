@@ -149,7 +149,7 @@ class face(mem):
             )
             if download_to:
                 try:
-                    shutil.move(current_file, os.path.basename(current_file))
+                    shutil.copy(current_file, os.path.basename(current_file))
                     current_file = os.path.basename(current_file)
                 except:
                     pass
