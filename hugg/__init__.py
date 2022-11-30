@@ -103,20 +103,21 @@ class face(mem):
 
     def login(self):
         if isinstance(self.auth,str):
-            hugging_face = f"{str(Path.home())}/.huggingface/"
+            hugging_face = os.path.join(Path.home(),".huggingface")
+            token_path = os.path.join(hugging_face, "token")
             import os
             if not os.path.exists(os.path.join(hugging_face,"token")):
                 for cmd in [
                     f"mkdir -p {hugging_face}",
-                    f"rm {hugging_face}/token",
-                    f"touch {hugging_face}/token"
+                    f"rm {token_path}",
+                    f"touch {token_path}"
                 ]:
                     try:
                         print(cmd);os.system(cmd)
                     except:
                         pass
 
-                with open(f"{hugging_face}/token","a") as writer:
+                with open(token_path,"a") as writer:
                     writer.write(self.auth)
             self.auth = True
         self.clearcache()
