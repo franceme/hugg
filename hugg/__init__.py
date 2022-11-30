@@ -103,10 +103,12 @@ class face(mem):
 
     def login(self):
         if isinstance(self.auth,str):
+            import os
+
             hugging_face = os.path.join(Path.home(),".huggingface")
             token_path = os.path.join(hugging_face, "token")
-            import os
-            if not os.path.exists(os.path.join(hugging_face,"token")):
+
+            if not os.path.exists(token_path):
                 for cmd in [
                     f"mkdir -p {hugging_face}",
                     f"rm {token_path}",
