@@ -179,7 +179,7 @@ class face(mem):
                     repo_type=self.repo_type,
                 )
             else:
-                print("Entered path " + stsr(path) + " is not supported.")
+                print("Entered path " + str(path) + " is not supported or doesn't exist exists(" +  os.path.exists(path) + ").")
             return True
         return False
     def files(self):
