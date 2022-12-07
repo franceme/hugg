@@ -169,6 +169,7 @@ class face(mem):
                     path_in_repo=path_in_repo or path,
                     repo_id=self.repo,
                     repo_type=self.repo_type,
+                    create_pr=True #https://huggingface.co/docs/huggingface_hub/v0.10.0.rc0/en/how-to-discussions-and-pull-requests
                 )
             elif isinstance(path,str) and os.path.isdir(path):
                 #https://huggingface.co/docs/huggingface_hub/v0.9.0/en/package_reference/hf_api#huggingface_hub.HfApi.upload_folder
@@ -177,6 +178,7 @@ class face(mem):
                     path_in_repo=path_in_repo or path,
                     repo_id=self.repo,
                     repo_type=self.repo_type,
+                    create_pr=True
                 )
             else:
                 print("Entered path " + str(path) + " is not supported or doesn't exist exists(" +  str(os.path.exists(path)) + ").")
