@@ -158,7 +158,7 @@ class face(mem):
                     pass
             return current_file
         return None
-    def upload(self, path=None,path_in_repo=None):
+    def upload(self, path=None,path_in_repo=None, use_pull_request=False):
         if not self.opened:
             self.login()
         if path:
@@ -169,7 +169,7 @@ class face(mem):
                     path_in_repo=path_in_repo or path,
                     repo_id=self.repo,
                     repo_type=self.repo_type,
-                    create_pr=True #https://huggingface.co/docs/huggingface_hub/v0.10.0.rc0/en/how-to-discussions-and-pull-requests
+                    create_pr=use_pull_request #https://huggingface.co/docs/huggingface_hub/v0.10.0.rc0/en/how-to-discussions-and-pull-requests
                 )
             elif isinstance(path,str) and os.path.isdir(path):
                 #https://huggingface.co/docs/huggingface_hub/v0.9.0/en/package_reference/hf_api#huggingface_hub.HfApi.upload_folder
@@ -178,7 +178,7 @@ class face(mem):
                     path_in_repo=path_in_repo or path,
                     repo_id=self.repo,
                     repo_type=self.repo_type,
-                    create_pr=True
+                    create_pr=use_pull_request
                 )
             else:
                 print("Entered path " + str(path) + " is not supported or doesn't exist exists(" +  str(os.path.exists(path)) + ").")
