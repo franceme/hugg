@@ -61,6 +61,34 @@ class mem(object):
             return self[current[0]] if grab else current[0]
         return None
 
+    def impor(self,file):
+        if file not in self.files():
+            print("FILE IS NOT AVAILABLE")
+            return None
+        
+        import_name = str(file.split('/')[-1]).replace('.py','')
+        #https://stackoverflow.com/questions/19009932/import-arbitrary-python-source-file-python-3-3#answer-19011259
+        loader = importlib.machinery.SourceFileLoader(import_name, os.path.abspath(self[file]))
+        mod = types.ModuleType(loader.name)
+        loader.exec_module(mod)
+
+        return mod
+
+    def jload(self,file):
+        if file not in self.files():
+            print("FILE IS NOT AVAILABLE")
+            return None
+        
+        import json
+        
+        cur_path = os.path.abspath(self[file])
+        with open(cur_path, 'r') as reader:
+            contents = json.load(reader)
+
+        os.remove(cur_path)
+
+        return contents
+
 """
 class face(mem):
     def __init__(self,repo,use_auth=True,repo_type="dataset",clear_cache=False):
@@ -256,7 +284,7 @@ class face(mem):
             repo_type=self.repo_type
         )
 
-    def impor(self,file):
+    def ol_impor(self,file):
         if file not in self.files():
             print("FILE IS NOT AVAILABLE")
             return None
