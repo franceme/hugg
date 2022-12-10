@@ -310,69 +310,69 @@ class face(mem):
         return False
 
 
-if False:
-    from github import Github
-    class ghub(mem):
-        def __init__(self,repo,access_token,branch=None):
-            self.repo = Github(access_token).get_repo(repo)
-            
-            self.branch = None
-            if branch is not None:
-                self.branch = branch
-            
-            if self.branch is None:
-                try:
-                    self.repo.get_branch(branch="main")
-                    self.branch = "main"
-                except Exception as e:
-                    print(e)
-                    print("Branch 'main' does not exist")
-                    pass
-            
-            if self.branch is None:
-                try:
-                    self.repo.get_branch(branch="master")
-                    self.branch = "master"
-                except Exception as e:
-                    print(e)
-                    print("Branch 'master' does not exist")
-                    pass
 
-            if self.branch is None:
-                print("No branch is selected, cannot work")
-                self.repo = None
+from github import Github
+class ghub(mem):
+    def __init__(self,repo,access_token,branch=None):
+        self.repo = Github(access_token).get_repo(repo)
+        
+        self.branch = None
+        if branch is not None:
+            self.branch = branch
+        
+        if self.branch is None:
+            try:
+                self.repo.get_branch(branch="main")
+                self.branch = "main"
+            except Exception as e:
+                print(e)
+                print("Branch 'main' does not exist")
+                pass
+        
+        if self.branch is None:
+            try:
+                self.repo.get_branch(branch="master")
+                self.branch = "master"
+            except Exception as e:
+                print(e)
+                print("Branch 'master' does not exist")
+                pass
 
-        def files(self):
-            files = []
-            contents = self.repo.get_contents("")
-            while contents:
-                file_content = contents.pop(0)
-                if file_content.type == "dir":
-                    contents.extend(self.repo.get_contents(file_content.path))
-                else:
-                    files += [file_content.path]
-            return files
+        if self.branch is None:
+            print("No branch is selected, cannot work")
+            self.repo = None
 
-        def login(self):
-            return
-        def logout(self):
-            return
-        def download(self, file_path=None,download_to=None):
-            if download_to is None:
-                download_to = os.path.join(os.curdir,file_path.split("/")[-1])
-            if file_path and isinstance(file_path,str):
-                with open(download_to,"w+") as writer:
-                    writer.write(self.repo.get_contents(file_path).decoded_content.decode("utf-8") )
-            return download_to
-        def upload(self, file_path=None,path_in_repo=None):
-            if path_in_repo in self: #Update
-                from pathlib import Path
-                contents = self.repo.get_contents(path_in_repo, ref=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L1803
-                new_contents = Path(file_path).read_text()
-                self.repo.update_file(contents.path, "Updating the file {}".format(path_in_repo), new_contents, contents.sha, branch=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2134
-            else: #Create #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2074
-                self.repo.create_file(path_in_repo, "Creating the file {}".format(path_in_repo), file_path, branch=self.branch)
-        def delete_file(self,path_in_repo=None):
-            if path_in_repo in self.files():
-                contents = self.repo.get_contents(path_in_repo, ref=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L1803
-                self.repo.delete_file(path_in_repo, "Deleting the file {}".format(path_in_repo), contents.sha,branch=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2198
+    def files(self):
+        files = []
+        contents = self.repo.get_contents("")
+        while contents:
+            file_content = contents.pop(0)
+            if file_content.type == "dir":
+                contents.extend(self.repo.get_contents(file_content.path))
+            else:
+                files += [file_content.path]
+        return files
+
+    def login(self):
+        return
+    def logout(self):
+        return
+    def download(self, file_path=None,download_to=None):
+        if download_to is None:
+            download_to = os.path.join(os.curdir,file_path.split("/")[-1])
+        if file_path and isinstance(file_path,str):
+            with open(download_to,"w+") as writer:
+                writer.write(self.repo.get_contents(file_path).decoded_content.decode("utf-8") )
+        return download_to
+    def upload(self, file_path=None,path_in_repo=None):
+        if path_in_repo in self: #Update
+            from pathlib import Path
+            contents = self.repo.get_contents(path_in_repo, ref=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L1803
+            new_contents = Path(file_path).read_text()
+            self.repo.update_file(contents.path, "Updating the file {}".format(path_in_repo), new_contents, contents.sha, branch=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2134
+        else: #Create #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2074
+            self.repo.create_file(path_in_repo, "Creating the file {}".format(path_in_repo), file_path, branch=self.branch)
+    def delete_file(self,path_in_repo=None):
+        if path_in_repo in self.files():
+            contents = self.repo.get_contents(path_in_repo, ref=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L1803
+            self.repo.delete_file(path_in_repo, "Deleting the file {}".format(path_in_repo), contents.sha,branch=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2198
