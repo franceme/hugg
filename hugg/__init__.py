@@ -102,7 +102,7 @@ class face(mem):
 """
 
 class face(mem):
-    def __init__(self,repo,use_auth=True,repo_type="dataset",clear_cache=False):
+    def __init__(self,repo,use_auth=True,repo_type="dataset",clear_cache=False, clear_token=False):
         """
         https://rebrand.ly/hugface
 
@@ -117,6 +117,7 @@ class face(mem):
         self.downloaded_files = []
         self.opened = False
         self.clear_cache = clear_cache
+        self.clear_token = clear_token
 
     def get_pull_requests(self):
         #https://huggingface.co/docs/huggingface_hub/how-to-discussions-and-pull-requests#retrieve-discussions-and-pull-requests-from-the-hub
@@ -189,6 +190,9 @@ class face(mem):
 
             hugging_face = os.path.join(Path.home(),".huggingface")
             token_path = os.path.join(hugging_face, "token")
+
+            if os.path.exists(token_path) and self.clear_token:
+                os.system("rm {0}".format(token_path))
 
             if not os.path.exists(token_path):
                 for cmd in [
