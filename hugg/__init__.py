@@ -50,10 +50,10 @@ class mem(object):
     def __call__(self,item):
         return self.download(item) if item in self else None
     
-    def find_all(self,lambda_search,grab=True):
+    def find_all(self,lambda_search,grab=False):
         return [self[x] if grab else x for x in self.files() if lambda_search(x)]
 
-    def find(self,lambda_search,grab=True):
+    def find(self,lambda_search,grab=False):
         current = self.find_all(lambda_search,False)
         if len(current) > 1:
             print("There are too many files found")
