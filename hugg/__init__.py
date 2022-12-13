@@ -311,6 +311,8 @@ class face(mem):
 
 
 
+#https://pygithub.readthedocs.io/en/latest/
+#https://pygithub.readthedocs.io/en/latest/examples/Branch.html#get-a-branch
 from github import Github
 class ghub(mem):
     def __init__(self,repo,access_token,branch=None):
@@ -341,14 +343,15 @@ class ghub(mem):
         if self.branch is None:
             print("No branch is selected, cannot work")
             self.repo = None
+            self = None
 
     def files(self):
         files = []
-        contents = self.repo.get_contents("")
+        contents = self.repo.get_contents("", ref=self.branch)
         while contents:
             file_content = contents.pop(0)
             if file_content.type == "dir":
-                contents.extend(self.repo.get_contents(file_content.path))
+                contents.extend(self.repo.get_contents(file_content.path, ref=self.branch))
             else:
                 files += [file_content.path]
         return files
@@ -362,7 +365,7 @@ class ghub(mem):
             download_to = os.path.join(os.curdir,file_path.split("/")[-1])
         if file_path and isinstance(file_path,str):
             with open(download_to,"w+") as writer:
-                writer.write(self.repo.get_contents(file_path).decoded_content.decode("utf-8") )
+                writer.write(self.repo.get_contents(file_path, ref=self.branch).decoded_content.decode("utf-8") )
         return download_to
     def upload(self, file_path=None,path_in_repo=None):
         if path_in_repo in self: #Update
