@@ -2,6 +2,7 @@ import os,sys,types,importlib.machinery,shutil
 from pathlib import Path
 from huggingface_hub import HfApi
 from abc import ABC, abstractmethod
+from github import Github
 
 class mem(object):    
     @abstractmethod
@@ -312,16 +313,38 @@ class face(mem):
                 repo_type=self.repo_type
             )
         return False
+        
+    def ____to_ghub(self, location, access_token):
+        if not self.opened:
+            self.login()
+
+        ghub_repo = ghub(location, access_token, create=True)
+
+        for foil in self.files():
+            ghub_repo[foil] = self[foil]
+
+        return ghub_repo
 
 
 
 #https://pygithub.readthedocs.io/en/latest/
 #https://pygithub.readthedocs.io/en/latest/examples/Branch.html#get-a-branch
-from github import Github
 class ghub(mem):
-    def __init__(self,repo,access_token,branch=None):
+    def __init__(self,repo,access_token,branch=None, create=False):
+        if False:
+            #create
+            #https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#create-a-repository-for-the-authenticated-user
+
+            self.github_access = Github(access_token)
+
+            #search :> https://github.com/PyGithub/PyGithub/blob/master/github/MainClass.py#L410
+            #https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#create-an-organization-repository
+            if create:
+            else:
+                self.repo = self.github_access.get_repo(repo)
+    
         self.repo = Github(access_token).get_repo(repo)
-        
+
         self.branch = None
         if branch is not None:
             self.branch = branch
