@@ -201,7 +201,7 @@ class face(mem):
                     f"touch {token_path}"
                 ]:
                     try:
-                        print(cmd);os.system(cmd)
+                        os.system(cmd)
                     except:
                         pass
 
