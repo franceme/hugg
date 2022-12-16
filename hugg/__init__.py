@@ -90,18 +90,6 @@ class mem(object):
 
         return contents
 
-"""
-class face(mem):
-    def __init__(self,repo,use_auth=True,repo_type="dataset",clear_cache=False):
-        super().__init__(type="HuggingFace")
-    def login(self):
-    def logout(self):
-    def download(self, file_path=None,download_to=None):
-    def upload(self, path=None,path_in_repo=None):
-    def files(self):
-    def delete_file(self,path_in_repo=None):
-"""
-
 class face(mem):
     def __init__(self,repo,use_auth=True,repo_type="dataset",clear_cache=False, clear_token=False):
         """
@@ -173,7 +161,6 @@ class face(mem):
             print(e)
 
         return None
-
 
     def clearcache(self):
         if self.clear_cache:
@@ -330,7 +317,42 @@ class face(mem):
 #https://pygithub.readthedocs.io/en/latest/
 #https://pygithub.readthedocs.io/en/latest/examples/Branch.html#get-a-branch
 class ghub(mem):
-    def __init__(self,repo,access_token,branch=None, create=False):
+    @staticmethod
+    def create_repo(auth_key, repo_name, private=True):
+        req = github.Requester.Requester(auth_key,None,None,"https://api.github.com",15,"PyGithub/Python",30,True,None,None)
+        try:
+            headers, data = req.requestJsonAndCheck(
+                "POST", "https://api.github.com/user/repos", parameters={},headers={
+                    "Accept":"application/vnd.github+json",
+                    "Authorization":"Bearer {0}".format(auth_key),
+                    "X-GitHub-Api-Version":"2022-11-28",
+                }, input = {
+                    "name":repo_name,
+                    "private":private,
+                    "auto_init":True,
+                }
+            )
+            output = True
+        except:
+            output = False
+
+        return output
+
+    def __init__(self,repo,access_token,branch=None,create=False):
+        self.github_access = Github(access_token)
+        if create:
+            try:
+                repo = self.github_access.get_repo(repo)
+                has_repo = True
+            except:
+                has_repo = False
+            
+            if has_repo:
+                raise Exception("There already is an repo with this name")
+            
+            if not ghub.create_repo(access_token, repo):
+                raise Exception("Error creating repo")
+
         if False:
             #create
             #https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#create-a-repository-for-the-authenticated-user
@@ -340,10 +362,11 @@ class ghub(mem):
             #search :> https://github.com/PyGithub/PyGithub/blob/master/github/MainClass.py#L410
             #https://docs.github.com/en/rest/repos/repos?apiVersion=2022-11-28#create-an-organization-repository
             if create:
+                print('a')
             else:
                 self.repo = self.github_access.get_repo(repo)
     
-        self.repo = Github(access_token).get_repo(repo)
+        self.repo = self.github_access.get_repo(repo)
 
         self.branch = None
         if branch is not None:
@@ -387,6 +410,13 @@ class ghub(mem):
         return
     def logout(self):
         return
+    def has_repo(self, repo):
+        try:
+            repo = self.github_access.get_repo(repo)
+            output = True
+        except:
+            output = False
+        return output
     def download(self, file_path=None,download_to=None):
         if download_to is None:
             download_to = os.path.join(os.curdir,file_path.split("/")[-1])
