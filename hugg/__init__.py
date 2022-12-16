@@ -301,7 +301,7 @@ class face(mem):
             )
         return False
         
-    def ____to_ghub(self, location, access_token):
+    def to_ghub(self, location, access_token):
         if not self.opened:
             self.login()
 
