@@ -311,8 +311,24 @@ class face(mem):
             ghub_repo[foil] = self[foil]
 
         return ghub_repo
-
-
+    
+    def fix_pr(self, num):
+        class pr(object):
+            def __init__(self,num,face=None):
+                self.num = num
+                self.face = face
+            def fix(self):
+                run("git checkout main -- .gitattributes && git add .gitattributes")
+            def __enter__(self):
+                run("git checkout pr/{0}".format(self.num))
+                return self
+            def __exit__(self,exc_type, exc_val, exc_tb):
+                run("git commit -m \"Fixed the gitattributes\"")
+                run("git push origin pr/{0}:refs/pr/{0}".format(self.num))
+                run("git checkout main")
+                face.merge_pull_request(self.num)
+                return self
+        return pr(num,self)
 
 #https://pygithub.readthedocs.io/en/latest/
 #https://pygithub.readthedocs.io/en/latest/examples/Branch.html#get-a-branch
