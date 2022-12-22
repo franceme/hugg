@@ -107,6 +107,7 @@ class face(mem):
         self.opened = False
         self.clear_cache = clear_cache
         self.clear_token = clear_token
+        self._pr_ = {}
 
     def get_pull_requests(self):
         #https://huggingface.co/docs/huggingface_hub/how-to-discussions-and-pull-requests#retrieve-discussions-and-pull-requests-from-the-hub
@@ -126,6 +127,14 @@ class face(mem):
 
         return output
 
+    @property
+    def pr(self):
+        if self._pr_ == {}:
+            for pr in self.get_pull_requests():
+                print(pr)
+                self._pr_[pr.num] = pr
+        return self._pr_
+
     def merge_pull_request(self, discussion_id=-1, comment="Auto Merge of the Pull Request"):
         #https://huggingface.co/docs/huggingface_hub/v0.9.0/en/package_reference/hf_api#huggingface_hub.HfApi.merge_pull_request
         #https://github.com/huggingface/huggingface_hub/blob/v0.9.0/src/huggingface_hub/hf_api.py#L3033
@@ -140,6 +149,8 @@ class face(mem):
                 repo_type=self.repo_type,
                 token=self.auth
             )
+            if discussion_id in self._pr_:
+                del self._pr_[discussion_id]
             return True
         except Exception as e:
             print(e)
@@ -311,13 +322,35 @@ class face(mem):
             ghub_repo[foil] = self[foil]
 
         return ghub_repo
+
+
+class fixface(face):
+    @staticmethod
+    def run(cmd):
+        print(cmd);os.system(cmd)
+
+    def __init__(self,repo,use_auth=True,repo_type="dataset",clear_cache=False, clear_token=False):
+        super().__init__(repo,use_auth=True,repo_type="dataset",clear_cache=False, clear_token=False)
+        fixface.run("git clone https://huggingface.co/datasets/{0}".format(repo))
     
+    def __enter__(self):
+        return self
+    
+    def exit(self):
+        fixface.run("yes|rm -r {0}/".format(self.repo.split("/")[-1]))
+
+    def __exit__(self,exc_type, exc_val, exc_tb):
+        self.exit()
+        return self
+
     def fix_pr(self, num):
+        def run(cmd):
+            print(cmd);os.system(cmd)
         class pr(object):
             def __init__(self,num,face=None):
                 self.num = num
                 self.face = face
-            def fix(self):
+            def fixattr(self):
                 run("git checkout main -- .gitattributes && git add .gitattributes")
             def __enter__(self):
                 run("git checkout pr/{0}".format(self.num))
