@@ -329,9 +329,9 @@ class fixface(face):
     def run(cmd):
         print(cmd);os.system(cmd)
 
-    def __init__(self,repo,use_auth=True,repo_type="dataset",clear_cache=False, clear_token=False):
+    def __init__(self,repo,use_auth=True,repo_type="dataset",clear_cache=False, clear_token=False, sparse=False):
         super().__init__(repo,use_auth=True,repo_type="dataset",clear_cache=False, clear_token=False)
-        fixface.run("git clone https://huggingface.co/datasets/{0}".format(repo))
+        fixface.run("git clone {1} https://huggingface.co/datasets/{0}".format(repo, "no-checkout" if sparse else ""))
     
     def __enter__(self):
         return self
