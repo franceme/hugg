@@ -331,8 +331,11 @@ class fixface(face):
 
     def __init__(self,repo,use_auth=True,repo_type="dataset",clear_cache=False, clear_token=False, sparse=False):
         super().__init__(repo,use_auth=True,repo_type="dataset",clear_cache=False, clear_token=False)
-        fixface.run("git clone {1} https://huggingface.co/datasets/{0}".format(repo, "no-checkout" if sparse else ""))
-    
+        #https://github.blog/2020-01-17-bring-your-monorepo-down-to-size-with-sparse-checkout/
+        fixface.run("git clone {1} https://huggingface.co/datasets/{0}".format(repo, "--no-checkout" if sparse else ""))
+        if sparse:
+            fixface.run("cd {0} && git sparse-checkout init --cone".format(repo.split("/")[-1]))
+
     def __enter__(self):
         return self
     
