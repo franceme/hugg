@@ -357,6 +357,7 @@ class fixface(face):
             def __init__(self,num,face=None):
                 self.num = num
                 self.face = face
+                run("cd {0}".format(repo.split("/")[-1]))
             def fixattr(self):
                 run("git checkout main -- .gitattributes && git add .gitattributes")
             def __enter__(self):
