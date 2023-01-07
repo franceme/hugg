@@ -347,8 +347,12 @@ class fixface(face):
         return self
 
     def fix_pr(self, num):
+        num = str(num)
         def run(cmd):
             print(cmd);os.system(cmd)
+
+        run("git fetch origin refs/pr/{0}:pr/{0}".format(num))
+
         class pr(object):
             def __init__(self,num,face=None):
                 self.num = num
