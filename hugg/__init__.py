@@ -159,6 +159,14 @@ class mem(object):
 
         return foil
 
+    def download_all(self, file_lambda, download_str_lambda):
+        for foil in self.files():
+            if file_lambda is not None and file_lambda(foil):
+                self.download(
+                    foil,
+                    foil if download_str_lambda is None else download_str_lambda(foil)
+                )
+
     def unwrap(self,foil):
         #Checking if there is a custom wrapping around the file, and unwrapping
         if foil != None and foil.endswith(".nosj"):
