@@ -35,7 +35,7 @@ long_description = pathlib.Path(f"{here}/README.md").read_text(encoding='utf-8')
 REQUIRES_PYTHON = '>=3.8.0'
 RELEASE = "?"
 entry_point = f"src.{NAME}"
-VERSION = "0.1.43"
+VERSION = "0.2.0"
 
 def zip_program(outputName:str = f"{NAME}.zip"):
 	#http://blog.ablepear.com/2012/10/bundling-python-files-into-stand-alone.html
@@ -103,7 +103,8 @@ elif selfArg('zip'):
 # endregion
 # region Setup
 extra_requires = {
-	'ghub':["PyGithub", "requests", "gett"],
+	'ghub':["PyGithub", "requests", "gett", "mystring"],
+	"q_ghub":["PyGithub", "requests", "gett", "waybackpy", "git4net", "splittr"],
 	'glab':["python-gitlab"],
 	'zip':["ruamel.std.zipfile"],
 	'face':["huggingface_hub", "datasets"]

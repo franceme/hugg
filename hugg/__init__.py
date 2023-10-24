@@ -8,6 +8,7 @@ else:
     from io import StringIO
 # https://pypi.org/project/ruamel.std.zipfile/
 from ephfile import ephfile
+from typing import List
 
 """
 class custom(mem):
@@ -866,6 +867,7 @@ except: pass
 try:
     from github import Github
     import gett as wget
+    from mystring import githuburl
     #https://pygithub.readthedocs.io/en/latest/
     #https://pygithub.readthedocs.io/en/latest/examples/Branch.html#get-a-branch
     class ghub(mem):
@@ -959,6 +961,8 @@ try:
                 print("No branch is selected, cannot work")
                 self.repo = None
                 self = None
+            
+            self.ghub_url = githuburl(self.repo, token=self.token)
 
         def files(self):
             files = []
@@ -1063,6 +1067,215 @@ try:
                 contents = self.repo.get_contents(path_in_repo, ref=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L1803
                 self.repo.delete_file(path_in_repo, "Deleting the file {}".format(path_in_repo), contents.sha,branch=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2198
 except:pass
+
+try:
+    GRepo_Saving_Progress_Lock = threading.Lock()
+
+    from github import Github
+    import gett as wget
+    import os, asyncio
+    import os, requests, datetime, time, queue, threading, asyncio
+    from copy import deepcopy as dc
+    from threading import Lock
+    from typing import Dict, List, Callable, Generic, TypeVar
+    from abc import ABC, abstractmethod
+    from fileinput import FileInput as finput
+    import mystring,splittr
+    import pause
+    from github import Github, Repository
+    import git2net
+    import pygit2 as git2
+    from contextlib import suppress
+
+    T = TypeVar('T')
+    class GRepo_Seed_Metric(ABC, Generic[T]):
+        @abstractmethod
+        def name(self) -> str:
+            pass
+
+        @abstractmethod
+        def metric(self, filename: str, source_code: str) -> T:
+            pass
+
+        @abstractmethod
+        def diff(self, latest: T, previous: T):
+            pass
+
+        def __call__(self):
+            setattr(self.metric, 'diff', self.diff)
+            return self.metric
+
+    class q_ghub(object):
+        def __init__(self,token,query_string:str,usewget=False, metrics:List[GRepo_Seed_Metric]=[], num_processes:int = None, delete_paths:bool=False, num_threads:int=10):
+            self.token = token
+            self.query_string = query_string
+            
+            self.metrics = metrics
+            self.token = token
+            if "GH_TOKEN" not in os.environ:
+                self.login()
+
+            self.usewget = usewget
+
+            self.g = Github(self.token)
+            self.processor = mystring.MyThreads(num_threads)
+            self.processed_paths = queue.Queue()
+            setattr(self.processed_paths, 'lock', threading.Lock())
+
+            self.current_repo_itr = None
+            self.total_repo_len = None
+            self.num_processes = num_processes
+
+            def appr(string: mystring.string):
+                with open("mapping_file_{0}.csv".format(string.tobase64()), "a+") as writer:
+                    writer.write(string)
+            self.appr = appr
+            self.api_watch = niceghapi()
+            self.delete_paths = delete_paths
+            self.query_string = None
+            self.tracking_repos = None
+            self.tracking_name = None
+
+            #Seems Sus
+            asyncio.run(self.handle_history())
+
+        def login(self):
+            os.environ['GH_TOKEN'] = self.token
+            with suppress(Exception):
+                with open("~/.bashrc", "a+") as writer:
+                    writer.write("GH_TOKEN={0}".format(self.token))
+
+        def save(self, current_project_url:str=None):
+            with GRepo_Saving_Progress_Lock:
+                if not os.path.exists(self.localfilename):
+                    with open(self.localfilename, "w+") as writer:
+                        writer.write("ProjectItr,ProjectURL,ProjectScanned\n")
+                        for proj_itr, proj in enumerate(self.repos):
+                            writer.write("{0},{1},false\n".format(proj_itr, proj))
+
+                if current_project_url is not None:
+                    found = False
+                    with finput(self.localfilename, inplace=True) as reader:
+                        for line in reader:
+                            if not found and current_project_url in line:
+                                line = line.replace("false", "true")
+                            print(line, end='')
+            return
+
+        async def handle_history(self):
+            while not self.complete:
+                # Get up to 5 strings from the queue
+                paths,num_waiting = [], 5
+                while len(paths) < num_waiting:
+                    try:
+                        path = self.processed_paths.get()
+                        paths.append(path)
+                    except queue.Empty:
+                        time.sleep(10)
+                        num_waiting -= 1
+
+                # Save Externally Here
+                for path in paths:
+                    string("yes|rm -r {0}".format(path)).exec()
+
+                for path in paths:
+                    self.save(path)
+
+        def mine_repo(self, repo_dir, sqlite_db_file):
+            if self.num_processes is None:
+                git2net.mine_git_repo(repo_dir, sqlite_db_file)
+            else:
+                git2net.mine_git_repo(repo_dir, sqlite_db_file, no_of_processes=self.num_processes)
+
+            git2net.mining_state_summary(repo_dir, sqlite_db_file)
+            git2net.disambiguate_aliases_db(sqlite_db_file)
+            git2net.compute_complexity(repo_dir, sqlite_db_file, no_of_processes=1, extra_eval_methods=self.metrics)
+
+        def mine_repos(self):
+            self.timing
+
+            def process_prep(repo_itr:int, repo_clone_url:str, search_string:str, appr:Callable, fin_queue:queue.Queue):
+                self.query_string = search_string
+                def process():
+                    def repair(path,create:bool=True, delete_paths:bool=False):
+                        if delete_paths and os.path.exists(path):
+                            os.system("yes|rm -r "+str(path))
+                        if create:
+                            os.makedirs(path, exist_ok=True)
+
+                    name = mystring.string("ITR>{0}_URL>{1}_STR>{2}\n".format(
+                        repo_itr, repo_clone_url, search_string
+                    ))
+                    repo_dir = "repo_" + str(name.tobase64())
+                    results_dir = "results_" + str(name.tobase64())
+
+                    self.repair(repo_dir, create=False, delete_paths = self.delete_paths)
+                    self.repair(results_dir)
+
+                    sqlite_db_file = os.path.join(results_dir, "git_to_net.sqlite")
+
+                    git2.clone_repository(repo_clone_url, repo_dir)  # Clones a non-bare repository
+
+                    self.mine_repo(repo_dir, sqlite_db_file)
+
+                    if os.stat(sqlite_db_file).st_size > 100_000_000:
+                        with foldentre(new_path=results_dir):
+                            raw_db_file = sqlite_db_file.replace(results_dir, '')
+                            splittr.hash(raw_db_file)
+                            splittr.split(raw_db_file, 50_000_000)
+                            splittr.template(raw_db_file+".py")
+
+                    appr(string(name.replace(',',';').replace('_',',').strip()))
+                    fin_queue.put(repo_clone_url)
+
+                return process
+
+            if len(self.repos) > 0:
+                for repo_itr, repo in enumerate(self.repos):
+                    self.processor += process_prep(repo_itr, repo.ghub_url.furl, self.query_string, self.appr, self.processed_paths)
+                    self.current_repo_itr = repo_itr
+            else:
+                print("No Repos Found")
+
+        @property
+        def repos(self) -> List[ghub]:
+            if self.tracking_repos is None:
+                self.tracking_repos = []
+                if os.path.exists(self.localfilename):
+                    with open(self.localfilename, "r") as reader:
+                        for line in reader:
+                            ProjectItr, ProjectURL, ProjectScanned = line.split(",")
+                            if ProjectScanned == "false":
+                                self.tracking_repos.append(ProjectURL)
+                else:
+                    self.tracking_repos = [ghub(x.clone_url.replace("https://github.com/",""), self.token, self.usewget) for x in self.g.search_repositories(query=self.query_string)]
+            return self.tracking_repos
+
+        @property
+        def complete(self):
+            return self.total_repo_len == self.current_repo_itr and self.processor.complete
+
+        @property
+        def localfilename(self):
+            if self.tracking_name is None:
+                self.tracking_name = string("query_progress_{0}.csv".format(
+                    string("{0}".format(self.query_string)).tobase64())
+                )
+            return self.tracking_name
+
+        @property
+        def timing(self):
+            self.api_watch.timing
+
+            extra_rate_limiting = self.g.get_rate_limit()
+            if hasattr(extra_rate_limiting, "search"):
+                search_limits = getattr(extra_rate_limiting, "search")
+                if search_limits.remaining < 2:
+                    print("Waiting until: {0}".format(search_limits.reset))
+                    pause.until(search_limits.reset)
+
+except:pass
+
 
 try:
     from gitlab import Gitlab
