@@ -867,7 +867,7 @@ except: pass
 try:
     from github import Github
     import gett as wget
-    from mystring import githuburl
+    from mystring import gh_url as githuburl
     #https://pygithub.readthedocs.io/en/latest/
     #https://pygithub.readthedocs.io/en/latest/examples/Branch.html#get-a-branch
     class ghub(mem):
