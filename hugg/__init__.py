@@ -1069,12 +1069,13 @@ try:
 except:pass
 
 try:
+    import threading
     GRepo_Saving_Progress_Lock = threading.Lock()
 
     from github import Github
     import gett as wget
     import os, asyncio
-    import os, requests, datetime, time, queue, threading, asyncio
+    import os, requests, datetime, time, queue, asyncio
     from copy import deepcopy as dc
     from threading import Lock
     from typing import Dict, List, Callable, Generic, TypeVar
@@ -1083,7 +1084,7 @@ try:
     import mystring,splittr
     import pause
     from github import Github, Repository
-    import git2net
+    import git4net as git2net
     import pygit2 as git2
     from contextlib import suppress
 
@@ -1130,9 +1131,8 @@ try:
                 with open("mapping_file_{0}.csv".format(string.tobase64()), "a+") as writer:
                     writer.write(string)
             self.appr = appr
-            self.api_watch = niceghapi()
+            self.api_watch = mystring.gh_api_status()
             self.delete_paths = delete_paths
-            self.query_string = None
             self.tracking_repos = None
             self.tracking_name = None
 
@@ -1248,7 +1248,8 @@ try:
                             if ProjectScanned == "false":
                                 self.tracking_repos.append(ProjectURL)
                 else:
-                    self.tracking_repos = [ghub(x.clone_url.replace("https://github.com/",""), self.token, self.usewget) for x in self.g.search_repositories(query=self.query_string)]
+                    clean_url = lambda url:url.replace(".git", "").replace("https://", "").replace("http://","").replace("github.com/","")
+                    self.tracking_repos = [ghub(clean_url(x.clone_url), self.token, self.usewget) for x in self.g.search_repositories(query=self.query_string)]
             return self.tracking_repos
 
         @property
@@ -1258,8 +1259,8 @@ try:
         @property
         def localfilename(self):
             if self.tracking_name is None:
-                self.tracking_name = string("query_progress_{0}.csv".format(
-                    string("{0}".format(self.query_string)).tobase64())
+                self.tracking_name = mystring.string("query_progress_{0}.csv".format(
+                    mystring.string("{0}".format(self.query_string)).tobase64())
                 )
             return self.tracking_name
 
