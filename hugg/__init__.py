@@ -865,7 +865,7 @@ try:
 except: pass
 
 try:
-    from github import Github
+    from github import Github,Requester
     import gett as wget
     from mystring import gh_url as githuburl
     #https://pygithub.readthedocs.io/en/latest/
@@ -873,7 +873,7 @@ try:
     class ghub(mem):
         @staticmethod
         def create_repo(auth_key, repo_name, private=True):
-            req = github.Requester.Requester(auth_key,None,None,"https://api.github.com",15,"PyGithub/Python",30,True,None,None)
+            req = Requester.Requester(auth_key,None,None,"https://api.github.com",15,"PyGithub/Python",30,True,None,None)
             try:
                 headers, data = req.requestJsonAndCheck(
                     "POST", "https://api.github.com/user/repos", parameters={},headers={
@@ -1083,8 +1083,6 @@ try:
     from fileinput import FileInput as finput
     import mystring,splittr
     import pause
-    from github import Github, Repository
-    import git4net as git2net
     import pygit2 as git2
     from contextlib import suppress
 
@@ -1107,7 +1105,7 @@ try:
             return self.metric
 
     class q_ghub(object):
-        def __init__(self,token,query_string:str,usewget=False, metrics:List[GRepo_Seed_Metric]=[], num_processes:int = None, delete_paths:bool=False, num_threads:int=10):
+        def __init__(self,token,query_string:str,usewget=False, metrics:List[GRepo_Seed_Metric]=[], num_processes:int = None, start_num:int=-1,end_num:int=-1,delete_paths:bool=False, num_threads:int=10):
             self.token = token
             self.query_string = query_string
             
@@ -1135,6 +1133,9 @@ try:
             self.delete_paths = delete_paths
             self.tracking_repos = None
             self.tracking_name = None
+
+            self.start_num = start_num
+            self.end_num = end_num
 
             #Seems Sus
             asyncio.run(self.handle_history())
@@ -1182,6 +1183,7 @@ try:
                     self.save(path)
 
         def mine_repo(self, repo_dir, sqlite_db_file):
+            import git4net as git2net
             if self.num_processes is None:
                 git2net.mine_git_repo(repo_dir, sqlite_db_file)
             else:
@@ -1238,7 +1240,7 @@ try:
                 print("No Repos Found")
 
         @property
-        def repos(self) -> List[ghub]:
+        def repos(self):
             if self.tracking_repos is None:
                 self.tracking_repos = []
                 if os.path.exists(self.localfilename):
@@ -1249,7 +1251,25 @@ try:
                                 self.tracking_repos.append(ProjectURL)
                 else:
                     clean_url = lambda url:url.replace(".git", "").replace("https://", "").replace("http://","").replace("github.com/","")
-                    self.tracking_repos = [ghub(clean_url(x.clone_url), self.token, self.usewget) for x in self.g.search_repositories(query=self.query_string)]
+                    if self.start_num == -1 and self.end_num == -1:
+                        self.tracking_repos = [ghub(clean_url(x.clone_url), self.token, self.usewget) for x in self.g.search_repositories(query=self.query_string)]
+                    else:
+                        self.tracking_repos = []
+                        start_page = 1 if self.start_num == -1 else self.start_num
+                        for x_page, x in enumerate(self.g.search_repositories(query=self.query_string, page=start_page)):
+                            if (self.end_num == -1 or self.end_num <= x_page):
+                                self.tracking_repos += [
+                                    ghub(clean_url(x.clone_url), self.token, self.usewget)
+                                ]
+
+                            if (
+                                self.end_num != -1
+                                and
+                                self.end_num > x_page
+                                and
+                                self.end_num == x_page - 1
+                            ):
+                                break
             return self.tracking_repos
 
         @property
