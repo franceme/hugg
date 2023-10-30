@@ -160,7 +160,7 @@ class mem(object):
 
         return foil
 
-    def download_all(self, file_lambda, download_str_lambda):
+    def download_all(self, file_lambda, download_str_lambda=None):
         for foil in self.files():
             if file_lambda is not None and file_lambda(foil):
                 self.download(
