@@ -135,7 +135,7 @@ class mem(object):
     def outline(self):
         import pathlib
         output = {}
-        for file in files:
+        for file in self.files():
             ext = pathlib.Path(file).suffix
             if ext not in output:
                 output[ext] = 0
@@ -958,9 +958,7 @@ try:
                     pass
 
             if self.branch is None:
-                print("No branch is selected, cannot work")
-                self.repo = None
-                self = None
+                self.branch = self.repo.get_branches()[0].name
             
             self.ghub_url = githuburl(self.repo, token=self.token)
 
@@ -1252,14 +1250,14 @@ try:
                 else:
                     clean_url = lambda url:url.replace(".git", "").replace("https://", "").replace("http://","").replace("github.com/","")
                     if self.start_num == -1 and self.end_num == -1:
-                        self.tracking_repos = [ghub(clean_url(x.clone_url), self.token, self.usewget) for x in self.g.search_repositories(query=self.query_string)]
+                        self.tracking_repos = [ghub(clean_url(x.clone_url), self.token, usewget=self.usewget) for x in self.g.search_repositories(query=self.query_string)]
                     else:
                         self.tracking_repos = []
                         start_page = 1 if self.start_num == -1 else self.start_num
                         for x_page, x in enumerate(self.g.search_repositories(query=self.query_string, page=start_page)):
                             if (self.end_num == -1 or self.end_num <= x_page):
                                 self.tracking_repos += [
-                                    ghub(clean_url(x.clone_url), self.token, self.usewget)
+                                    ghub(clean_url(x.clone_url), self.token, usewget=self.usewget)
                                 ]
 
                             if (
