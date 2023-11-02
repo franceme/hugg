@@ -360,6 +360,16 @@ class mem(object):
                 self.delete_file(foil)
         """
         print(']')
+    
+    def file_ext_metrics(self):
+        extensions = {}
+        for foil in self.files():
+            if "." in foil:
+                ext = foil.split(".")[-1]
+                if ext not in extensions:
+                    extensions[ext] = 0
+                extensions[ext] += 1
+        return extensions
 
 class localdrive(mem):
     #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
