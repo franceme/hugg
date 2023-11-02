@@ -1435,6 +1435,135 @@ try:
             return True
 except:pass
 
+
+try:
+    class xcyl(mem):
+        #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
+        #https://python-gitlab.readthedocs.io/en/stable/api-usage.html
+        def __init__(self,path):
+            self.path = path
+
+        def files(self):
+            return [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.path) for f in filenames if os.path.isfile(f)]
+
+        def login(self):
+            return
+        
+        def logout(self):
+            return
+        
+        def download(self, file_path=None,download_to=None):
+            download_to = download_to or os.path.basename(file_path)
+            shutil.copy(file_path, download_to)
+            return download_to
+        
+        def upload(self, file_path=None,path_in_repo=None):
+            shutil.copy(file_path, path_in_repo)
+            return True
+        
+        def delete_file(self,path_in_repo=None):
+            if path_in_repo in self.files():
+                os.remove(path_in_repo)
+            return True
+except: pass
+
+
+try:
+    import pandas as pd
+    import mystring as mys
+    class sqlite(mem):
+        #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
+        #https://python-gitlab.readthedocs.io/en/stable/api-usage.html
+        def __init__(self,path):
+            self.path = path
+
+        class __internal_crawl(object):
+            def __init__(self, file=None):
+                self.file = file
+                self.connection = None
+
+            def __enter__(self):
+                self.connection = sqlite3.connect(self.file_name)
+                return self
+
+            def __call__(self, query:str):
+                cursor = self.connection.cursor()
+                cursor.execute(query)
+                output = cursor.fetchall()
+                cursor = None
+                return output
+
+            def __exit__(self, a,b,c):
+                if self.connection:
+                    self.connection.close()
+
+        def __crawl(self):
+            return self.__internal_crawl(self.path)
+
+        def files(self):
+            tables = []
+            with self.__crawl() as db:
+                tables = [x[0] for x in db("SELECT name FROM sqlite_master WHERE type='table';")]
+            return
+
+        def login(self):
+            return
+        
+        def logout(self):
+            return
+        
+        def download(self, file_path=None,download_to=None):
+            if file_path not in self.files():
+                return None
+
+            data = None
+            with self.__crawl() as db:
+                data = mys(pd.read_sql_query("""SELECT * FROM "{0}";""".format(file_path)))
+
+            return data
+        
+        def upload(self, file_path=None,path_in_repo=None):
+            while sheet_name in list(self.tables()):
+                sheet_name += "_"
+            return True
+        
+        def delete_file(self,path_in_repo=None):
+            if path_in_repo in self.files():
+                os.remove(path_in_repo)
+            return True
+except: pass
+
+try:
+    class dbhub(mem):
+        #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
+        #https://python-gitlab.readthedocs.io/en/stable/api-usage.html
+        def __init__(self,path):
+            self.path = path
+
+        def files(self):
+            return [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.path) for f in filenames if os.path.isfile(f)]
+
+        def login(self):
+            return
+        
+        def logout(self):
+            return
+        
+        def download(self, file_path=None,download_to=None):
+            download_to = download_to or os.path.basename(file_path)
+            shutil.copy(file_path, download_to)
+            return download_to
+        
+        def upload(self, file_path=None,path_in_repo=None):
+            shutil.copy(file_path, path_in_repo)
+            return True
+        
+        def delete_file(self,path_in_repo=None):
+            if path_in_repo in self.files():
+                os.remove(path_in_repo)
+            return True
+except: pass
+
 def redundant(klass):
     """
     #Example:
