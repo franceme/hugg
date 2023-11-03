@@ -364,7 +364,7 @@ class mem(object):
     def file_ext_metrics(self):
         extensions = {}
         for foil in self.files():
-            if "." in foil:
+            if "." in foil and not foil.startswith("."):
                 ext = foil.split(".")[-1]
                 if ext not in extensions:
                     extensions[ext] = 0
