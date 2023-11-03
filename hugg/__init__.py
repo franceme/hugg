@@ -361,15 +361,22 @@ class mem(object):
         """
         print(']')
     
-    def file_ext_metrics(self):
+    def file_ext_metrics(self, full_path_lambda=None):
         extensions = {}
         for foil in self.files():
-            if "." in foil and not foil.startswith("."):
+            if "." in foil and (full_path_lambda is None or full_path_lambda(foil)):
                 ext = foil.split(".")[-1]
                 if ext not in extensions:
                     extensions[ext] = 0
                 extensions[ext] += 1
         return extensions
+    
+    def file_size_metrics(self):
+        file_sizes = {}
+        for foil in self.files():
+            if "." in foil and not foil.startswith("."):
+                file_sizes[foil] = os.path.getsize(foil)
+        return file_sizes
 
 class localdrive(mem):
     #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
