@@ -1477,33 +1477,32 @@ try:
         def __init__(self,path):
             self.path = path
 
-        class __internal_crawl(object):
-            def __init__(self, file=None):
-                self.file = file
-                self.connection = None
-
-            def __enter__(self):
-                self.connection = sqlite3.connect(self.file_name)
-                return self
-
-            def __call__(self, query:str):
-                cursor = self.connection.cursor()
-                cursor.execute(query)
-                output = cursor.fetchall()
-                cursor = None
-                return output
-
-            def __exit__(self, a,b,c):
-                if self.connection:
-                    self.connection.close()
-
         def __crawl(self):
-            return self.__internal_crawl(self.path)
+            class __internal_crawl(object):
+                def __init__(self, file=None):
+                    self.file = file
+                    self.connection = None
+
+                def __enter__(self):
+                    self.connection = sqlite3.connect(self.file_name)
+                    return self
+
+                def __call__(self, query:str):
+                    cursor = self.connection.cursor()
+                    cursor.execute(query)
+                    output = cursor.fetchall()
+                    cursor = None
+                    return output
+
+                def __exit__(self, a,b,c):
+                    if self.connection:
+                        self.connection.close()
+            return __internal_crawl(self.path)
 
         def files(self):
             tables = []
             with self.__crawl() as db:
-                tables = [x[0] for x in db("SELECT name FROM sqlite_master WHERE type='table';")]
+                tables = [str(x[0]).strip() for x in db("SELECT name FROM sqlite_master WHERE type='table';")]
             return
 
         def login(self):
@@ -1519,29 +1518,135 @@ try:
             data = None
             with self.__crawl() as db:
                 data = mys(pd.read_sql_query("""SELECT * FROM "{0}";""".format(file_path)))
+            
+            if download_to:
+                from pathlib import Path
+                ext = Path(download_to).suffix
+
+                if ext == ".pkl":
+                    data.to_pickle(download_to)
+                elif ext == ".csv":
+                    data.to_csv(download_to)
+                elif ext == ".excel":
+                    data.to_excel(download_to)
 
             return data
         
         def upload(self, file_path=None,path_in_repo=None):
-            while sheet_name in list(self.tables()):
-                sheet_name += "_"
+            if file_path is None:
+                return False
+
+            if isinstance(file_path, str):
+                from pathlib import Path
+                ext = Path(download_to).suffix
+
+                if not os.path.exists(file_path):
+                    return False
+                if ext == ".pkl":
+                    file_path = pd.read_pickle(file_path)
+                elif ext == ".csv":
+                    file_path = pd.read_csv(file_path)
+                elif ext == ".excel":
+                    default_sheet_name = 0
+
+                    if ":" in file_path:
+                        file_path, default_sheet_name = file_path.split(":")
+
+                    file_path = pd.read_excel(file_path, sheet_name = default_sheet_name)
+                else:
+                    return False
+
+            if path_in_repo is None:
+                path_in_repo = os.path.basename(file_path)
+
+            current_file_names = list(self.files())
+            while path_in_repo in current_file_names:
+                path_in_repo += "_"
+
+            with self.__crawl() as db:
+                file_obj.to_sql(path_in_repo, db.connection, if_exists='replace')
+
             return True
         
         def delete_file(self,path_in_repo=None):
-            if path_in_repo in self.files():
-                os.remove(path_in_repo)
+            if path_in_repo is None or path_in_repo not in list(self.files()):
+                return True
+
+            with self.__crawl() as db:
+                db.connection.cursor().execute("""DROP table IF EXISTS "{0}";""".format(path_in_repo))
+
             return True
 except: pass
 
 try:
-    class dbhub(mem):
+    from ephfile import ephfile
+	import pydbhub.dbhub as dbhub
+
+    class dbhub(mem): #https://github.dev/franceme/xcyl
         #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
         #https://python-gitlab.readthedocs.io/en/stable/api-usage.html
-        def __init__(self,path):
-            self.path = path
+        def __init__(self, repo:str, access_token: str, owner: str, table_name: str=None):
+            self.repo = repo
+            self.access_token = access_token
+            self.owner = owner
+            self.config = "config.ini"
+            self.table_name = table_name
+
+        @property
+        def dbhub(self):
+            class login_prep(object):
+                def __init__(self, api_key, db_owner, db_name):
+                    self.api_key = api_key
+                    self.db_owner = db_owner
+                    self.db_name = db_name
+                    self.config_file = "config.ini"
+                def __enter__(self):
+                    with open(self.config, "w+") as config:
+                        config.write("""[dbhub]
+	api_key = {0}
+	db_owner = {self.owner}
+	db_name = {self.repo}
+	""".format(
+        self.api_key,
+        self.db_owner,
+        self.db_name
+    ))
+                    return dbhub.Dbhub(config_file=self.config)
+                def __exit__(self, a=None,b=None,c=None):
+                    os.remove(self.config)
+                    pass
+            return login_prep(self.access_token, self.owner, self.table_name)
+
+        def query(self, string):
+            output = None
+
+            with self.dbhub as db:
+                results, err = db.Query(
+                    self.owner,
+                    self.repo,
+                    string.replace(':table_name', self.table_name).replace(':table_name'.upper(), self.table_name)
+                )
+                if err is None:
+                    output = results
+            except:
+                pass
+
+            return output
+
 
         def files(self):
-            return [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.path) for f in filenames if os.path.isfile(f)]
+            output = []
+
+            with self.dbhub as db:
+                try:
+                    # https://github.com/LeMoussel/pydbhub/blob/5fac7fa1b136ccdac09c58165ab399603c32b16f/examples/list_tables/main.py#L28
+                    tables, err = db.Tables(self.owner, self.repo)
+                    if err is None:
+                        output = tables
+                except:
+                    pass
+
+            return output
 
         def login(self):
             return
@@ -1550,18 +1655,48 @@ try:
             return
         
         def download(self, file_path=None,download_to=None):
-            download_to = download_to or os.path.basename(file_path)
-            shutil.copy(file_path, download_to)
-            return download_to
+            output = pd.DataFrame()
+            with self.lock:
+                with self.lload:
+                    if self.lightload:
+                        output = self.onquery("SELECT * FROM {0}".format(table_name))
+                    else:
+                        # https://github.com/LeMoussel/pydbhub/blob/5fac7fa1b136ccdac09c58165ab399603c32b16f/examples/download_database/main.py#L29
+                        buf, err = self.db.Download(db_name=table_name, db_owner=self.owner)
+                        if err is not None:
+                            print(f"[ERROR] {err}")
+                        else:
+                            with open(table_name + ".sql", "wb") as sqlite_file:
+                                sqlite_file.write(buf)
+                        output = pd.read_csv(table_name + ".sql")
+
+            return frame(output)
         
-        def upload(self, file_path=None,path_in_repo=None):
-            shutil.copy(file_path, path_in_repo)
-            return True
+        def upload(self, file_path=None, path_in_repo=None):
+            if self.currentdb_name == None:
+                return
+
+            with self.lock:
+                with self.lload:
+                    with ephfile(self.current_db.to_sqlite()) as eph:
+                        try:
+                            db_contents = open(eph(), 'rb')
+                            with db_contents:
+                                # https://github.com/LeMoussel/pydbhub/blob/5fac7fa1b136ccdac09c58165ab399603c32b16f/examples/upload/main.py#L51
+                                res, err = self.db.Upload(db_name=eph(), db_bytes=db_contents,
+                                                    info=dbhub.UploadInformation(
+                                                        commitmsg=f"Uploading changes to {self.currend_db_name}",
+                                                        committimestamp=datetime.datetime.now(),
+                                                    ))
+                                if err is not None:
+                                    print(f"[ERROR] {err}")
+                                    sys.exit(1)
+                        except Exception as e:
+                            pass
+            return
         
         def delete_file(self,path_in_repo=None):
-            if path_in_repo in self.files():
-                os.remove(path_in_repo)
-            return True
+            self.query("DROP TABLE IF EXISTS {0}".format(self.table_name))
 except: pass
 
 def redundant(klass):
