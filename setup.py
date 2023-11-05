@@ -107,7 +107,10 @@ extra_requires = {
 	"q_ghub":["PyGithub", "requests", "gett", "waybackpy", "git4net", "splittr"],
 	'glab':["python-gitlab"],
 	'zip':["ruamel.std.zipfile"],
-	'face':["huggingface_hub", "datasets"]
+	'face':["huggingface_hub", "datasets"],
+	'sqlite':["mystring", "pandas"],
+	'excel':["huggingface_hub", "datasets", "openpyxl"],
+	'dbhub':["huggingface_hub", "datasets", "pydbhub"]
 }
 extra_requires['all'] = [value for key,values in extra_requires.items() for value in values]
 
