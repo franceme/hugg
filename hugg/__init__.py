@@ -1437,6 +1437,7 @@ except:pass
 
 
 try:
+    from openpyxl import load_workbook
     class xcyl(mem):
         #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
         #https://python-gitlab.readthedocs.io/en/stable/api-usage.html
@@ -1444,7 +1445,7 @@ try:
             self.path = path
 
         def files(self):
-            return [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.path) for f in filenames if os.path.isfile(f)]
+            return load_workbook(self.path, read_only=True, keep_links=True).sheetnames
 
         def login(self):
             return
@@ -1453,12 +1454,17 @@ try:
             return
         
         def download(self, file_path=None,download_to=None):
-            download_to = download_to or os.path.basename(file_path)
-            shutil.copy(file_path, download_to)
-            return download_to
+            if file_path not in self.files():
+                return None
+
+            data = pd.read_excel(self.path, sheet_name=file_path, engine="openpyxl")
+            
         
         def upload(self, file_path=None,path_in_repo=None):
-            shutil.copy(file_path, path_in_repo)
+            while file_path in self.files():
+                file_path += "_"
+
+            data = pd.read_excel(self.path, sheet_name=file_path, engine="openpyxl")
             return True
         
         def delete_file(self,path_in_repo=None):
@@ -1471,6 +1477,7 @@ except: pass
 try:
     import pandas as pd
     import mystring as mys
+    import sqlite3
     class sqlite(mem):
         #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
         #https://python-gitlab.readthedocs.io/en/stable/api-usage.html
