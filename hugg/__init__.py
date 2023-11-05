@@ -1528,7 +1528,7 @@ try:
                     self.connection = None
 
                 def __enter__(self):
-                    self.connection = sqlite3.connect(self.file_name)
+                    self.connection = sqlite3.connect(self.file)
                     return self
 
                 def __call__(self, query:str):
