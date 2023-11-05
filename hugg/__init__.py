@@ -1452,24 +1452,44 @@ try:
         
         def logout(self):
             return
-        
-        def download(self, file_path=None,download_to=None):
+
+        def download(self, file_path=None, download_to=None):
             if file_path not in self.files():
                 return None
 
             data = pd.read_excel(self.path, sheet_name=file_path, engine="openpyxl")
-            
+
+            if download_to:
+                mystring.frame.of(data).write_to(download_to)
+
+            return data
         
         def upload(self, file_path=None,path_in_repo=None):
-            while file_path in self.files():
-                file_path += "_"
+            while path_in_repo in self.files():
+                path_in_repo += "_"
 
-            data = pd.read_excel(self.path, sheet_name=file_path, engine="openpyxl")
+            data = mystring.frame.of(file_path)
+            
+            with pd.ExcelWriter(self.path, engine="xlsxwriter") as writer:
+                data.to_excel(writer, sheet_name=path_in_repo, startrow=1, header=True)
+
             return True
         
         def delete_file(self,path_in_repo=None):
-            if path_in_repo in self.files():
-                os.remove(path_in_repo)
+            if path_in_repo not in self.files():
+                return False
+            
+            current_date = {}
+            for sheet in self.files():
+                if sheet != path_in_repo:
+                    current_date[sheet] = pd.read_excel(self.path, sheet_name=sheet, engine="openpyxl")
+            
+            os.remove(self.path)
+
+            with pd.ExcelWriter(self.path, engine="xlsxwriter") as writer:
+                for sheet in current_date:
+                    current_date[sheet].to_excel(writer, sheet_name=sheet, startrow=1, header=True)
+
             return True
 except: pass
 
@@ -1510,7 +1530,7 @@ try:
             tables = []
             with self.__crawl() as db:
                 tables = [str(x[0]).strip() for x in db("SELECT name FROM sqlite_master WHERE type='table';")]
-            return
+            return tables
 
         def login(self):
             return
@@ -1545,7 +1565,7 @@ try:
 
             if isinstance(file_path, str):
                 from pathlib import Path
-                ext = Path(download_to).suffix
+                ext = Path(path_in_repo).suffix
 
                 if not os.path.exists(file_path):
                     return False
@@ -1571,7 +1591,7 @@ try:
                 path_in_repo += "_"
 
             with self.__crawl() as db:
-                file_obj.to_sql(path_in_repo, db.connection, if_exists='replace')
+                file_path.to_sql(self.path, db.connection, if_exists='replace')
 
             return True
         
@@ -1587,7 +1607,7 @@ except: pass
 
 try:
     from ephfile import ephfile
-	import pydbhub.dbhub as dbhub
+    import pydbhub.dbhub as dbhub
 
     class dbhub(mem): #https://github.dev/franceme/xcyl
         #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
@@ -1635,8 +1655,6 @@ try:
                 )
                 if err is None:
                     output = results
-            except:
-                pass
 
             return output
 
@@ -1662,48 +1680,46 @@ try:
             return
         
         def download(self, file_path=None,download_to=None):
-            output = pd.DataFrame()
-            with self.lock:
-                with self.lload:
-                    if self.lightload:
-                        output = self.onquery("SELECT * FROM {0}".format(table_name))
-                    else:
-                        # https://github.com/LeMoussel/pydbhub/blob/5fac7fa1b136ccdac09c58165ab399603c32b16f/examples/download_database/main.py#L29
-                        buf, err = self.db.Download(db_name=table_name, db_owner=self.owner)
-                        if err is not None:
-                            print(f"[ERROR] {err}")
-                        else:
-                            with open(table_name + ".sql", "wb") as sqlite_file:
-                                sqlite_file.write(buf)
-                        output = pd.read_csv(table_name + ".sql")
+            data = self.query("SELECT * FROM {0}".format(file_path))
 
-            return frame(output)
+            if download_to:
+                mystring.frame.of(data).write_to(download_to)
+
+            return data
         
         def upload(self, file_path=None, path_in_repo=None):
-            if self.currentdb_name == None:
+            if file_path == None:
                 return
+            while path_in_repo in self.files():
+                path_in_repo += "_"
 
-            with self.lock:
-                with self.lload:
-                    with ephfile(self.current_db.to_sqlite()) as eph:
-                        try:
-                            db_contents = open(eph(), 'rb')
-                            with db_contents:
-                                # https://github.com/LeMoussel/pydbhub/blob/5fac7fa1b136ccdac09c58165ab399603c32b16f/examples/upload/main.py#L51
-                                res, err = self.db.Upload(db_name=eph(), db_bytes=db_contents,
-                                                    info=dbhub.UploadInformation(
-                                                        commitmsg=f"Uploading changes to {self.currend_db_name}",
-                                                        committimestamp=datetime.datetime.now(),
-                                                    ))
-                                if err is not None:
-                                    print(f"[ERROR] {err}")
-                                    sys.exit(1)
-                        except Exception as e:
-                            pass
+            if isinstance(file_path, str):
+                new_table = mystring.frame.of(file_path)
+
+            with ephfile(suffix='.sqlite') as eph:
+                for table in self.files():
+                    self.download(table, eph())
+                new_table.write_to(eph(), sheet_name = path_in_repo)
+
+            with self.dbhub as db:
+                try:
+                    db_contents = open(eph(), 'rb')
+                    with db_contents:
+                        # https://github.com/LeMoussel/pydbhub/blob/5fac7fa1b136ccdac09c58165ab399603c32b16f/examples/upload/main.py#L51
+                        res, err = db.Upload(db_name=eph(), db_bytes=db_contents,
+                                            info=dbhub.UploadInformation(
+                                                commitmsg=f"Uploading changes to {self.repo}",
+                                                committimestamp=datetime.datetime.now(),
+                                            ))
+                        if err is not None:
+                            print(f"[ERROR] {err}")
+                            sys.exit(1)
+                except Exception as e:
+                    pass
             return
         
         def delete_file(self,path_in_repo=None):
-            self.query("DROP TABLE IF EXISTS {0}".format(self.table_name))
+            self.query("DROP TABLE IF EXISTS {0}".format(path_in_repo))
 except: pass
 
 def redundant(klass):
