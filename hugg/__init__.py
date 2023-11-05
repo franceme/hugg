@@ -1561,7 +1561,7 @@ try:
 
             data = None
             with self.__crawl() as db:
-                data = mys(pd.read_sql_query("""SELECT * FROM "{0}";""".format(file_path)))
+                data = mys(pd.read_sql_query("""SELECT * FROM "{0}";""".format(file_path), con=db.connection))
             
             if download_to:
                 from pathlib import Path
