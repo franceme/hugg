@@ -446,6 +446,39 @@ class subRemote(mem):
     def delete_file(self,path_in_repo=None):
         return False
 
+
+class shelving(mem):
+    def __init__(self,path:str=os.curdir,wraplambda=lambda foil:False):
+        super().__init__(wraplambda)
+        self.path = path
+
+    def _load_shelf(self):
+        return shelve.open(path)
+
+    def files(self):
+        with self._load_shelf as db:
+            return db.keys()
+
+    def login(self):
+        return
+    
+    def logout(self):
+        return
+    
+    def download(self, file_path=None,download_to=None):
+        download_to = download_to or os.path.basename(file_path)
+        shutil.copy(file_path, download_to)
+        return download_to
+    
+    def upload(self, file_path=None,path_in_repo=None):
+        shutil.copy(file_path, path_in_repo)
+        return True
+    
+    def delete_file(self,path_in_repo=None):
+        with self._load_shelf as db:
+            return db.keys()
+        return True
+
 try:
     from huggingface_hub import HfApi
     class face(mem):
