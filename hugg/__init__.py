@@ -1584,7 +1584,7 @@ try:
 
             with ephfile(suffix=".tar") as temp_tar:
                 with open(temp_tar(), "wb") as f:
-                    bits, stat = container.get_archive(file_path)
+                    bits, stat = self.container.get_archive(file_path)
                     for chunk in bits:
                         f.write(chunk)
 
@@ -1605,7 +1605,7 @@ try:
                 with open(temp_tar(), "rb") as in_file:
                     tar_file_bytes = in_file.read()
 
-                container.put_archive(
+                self.container.put_archive(
                     path_in_repo,
                     tar_file_bytes
                 )
