@@ -1552,9 +1552,12 @@ try:
                         except:pass
                     else:
                         try:
-                            file_log_line = str(file_log.decode("utf-8").split(" ")[-1]).strip()
-                            if file_log_line not in ["../","..","./","."]:
-                                files += [file_log_line]
+                            file_log_line = str(file_log.decode("utf-8")).strip()
+                            for subline in file_log_line.split("\n"):
+                                if not subline.startswith("total"):
+                                    subline = str(subline.split(" ")[-1]).strip()
+                                    if subline not in ["../","..","./",".",""]:
+                                        files += [subline]
                         except Exception as k:
                             print("Error  decoding {1} @ line {0}".format(str(log_itr), str(file_log)))
             except Exception as e:
