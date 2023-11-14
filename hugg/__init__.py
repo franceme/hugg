@@ -1552,7 +1552,9 @@ try:
                         except:pass
                     else:
                         try:
-                            files += [file_log.decode("utf-8").split(" ")[-1]]
+                            file_log_line = str(file_log.decode("utf-8").split(" ")[-1]).strip()
+                            if file_log_line not in ["../","..","./","."]:
+                                files += [file_log_line]
                         except Exception as k:
                             print("Error  decoding {1} @ line {0}".format(str(log_itr), str(file_log)))
             except Exception as e:
