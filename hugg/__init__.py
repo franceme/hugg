@@ -1524,6 +1524,105 @@ try:
             return True
 except: pass
 
+
+try:
+    import docker, tarfile
+    from ephfile import ephfile
+    class dock(mem):
+        #https://docs.python.org/3/library/tarfile.html
+        def __init__(self,container:docker.models.containers.Container,working_dir:str="/tmp",wraplambda=lambda foil:False):
+            super().__init__(wraplambda)
+            self.container = container
+            self.working_dir = working_dir
+
+        def files(self):
+            #https://www.tutorialspoint.com/How-to-create-a-tar-file-using-Python
+            files = []
+            try:
+                file_logs = self.container.exec_run(
+                    cmd = "sh -c 'ls -altr {0}'".format(self.working_dir),
+                    privileged=True,
+                    workdir=self.working_dir,
+                    stderr=True, stdout=True
+                )
+                for file_log in file_logs:
+                    files += [
+                        file_log.split(" ")[-1]
+                    ]
+            except Exception as e:
+                print(e)
+            return files
+
+        def _check_for_file(self, path):
+            try:
+                bits, stat = self.container.get_archive(path)
+                return True
+            except docker.errors.NotFound:
+                return False
+            except Exception as e:
+                print(e)
+                return False
+
+        def login(self):
+            return
+        
+        def logout(self):
+            return
+        
+        def download(self, file_path=None, download_to=None):
+            if file_path not in self.files():
+                print("File Does Not Exist within")
+                return
+
+            with ephfile(suffix=".tar") as temp_tar:
+                with open(temp_tar(), "wb") as f:
+                    bits, stat = container.get_archive(file_path)
+                    for chunk in bits:
+                        f.write(chunk)
+
+                bare_result_file = os.path.basename(result_file)
+                with tar(temp_tar()) as tarfile:
+                    tarfile.download(file_path, bare_result_file)
+                
+                os.rename(bare_result_file, download_to)
+
+            return download_to
+        
+        def upload(self, file_path=None,path_in_repo=None):
+            with ephfile(suffix=".tar") as temp_tar:
+
+                with tar(temp_tar()) as tar_file:
+                    tar_file.upload(file_path, path_in_repo)
+
+                with open(temp_tar(), "rb") as in_file:
+                    tar_file_bytes = in_file.read()
+
+                container.put_archive(
+                    path_in_repo,
+                    tar_file_bytes
+                )
+
+            return True
+        
+        def delete_file(self,path_in_repo=None):
+            try:
+                del_logs = self.container.exec_run(
+                    cmd = "sh -c 'yes|rm -r {0}'".format(path_in_repo),
+                    privileged=True,
+                    workdir=self.working_dir,
+                    stderr=True, stdout=True
+                )
+                for file_log in file_logs:
+                    files += [
+                        file_log.split(" ")[-1]
+                    ]
+                return True
+            except Exception as e:
+                print(e)
+                return True
+except: pass
+
+
 try:
     from openpyxl import load_workbook
     class xcyl(mem):
