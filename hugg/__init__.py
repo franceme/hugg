@@ -1581,7 +1581,7 @@ try:
             return
         
         def download(self, file_path=None, download_to=None):
-            if file_path.replace(self.working_dir, "") not in self.files():
+            if file_path.replace(self.working_dir+"/", "") not in self.files():
                 print("File Does Not Exist within")
                 return
 
