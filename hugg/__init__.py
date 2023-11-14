@@ -1475,19 +1475,23 @@ try:
         def logout(self):
             return
         
-        def download(self, file_path=None,download_to=None,use_base=False):
+        def download(self, file_path=None,download_to=None,try_anyway=False):
             if not os.path.exists(self.location):
                 print("Tar File Does Not Exist")
                 return
-            if file_path not in self.files() or not (use_base or os.path.basename(file_path) in self.files()):
+            if file_path not in self.files() and not try_anyway:
                 print("File Does Not Exist within tar")
                 return
             
-            with tarfile.open(self.location, 'r') as tar:
-                #https://stackoverflow.com/questions/20434912/is-it-possible-to-extract-single-file-from-tar-bundle-in-python
-                tar.extract(file_path)
+            try:
+                with tarfile.open(self.location, 'r') as tar:
+                    #https://stackoverflow.com/questions/20434912/is-it-possible-to-extract-single-file-from-tar-bundle-in-python
+                    tar.extract(file_path)
 
-            os.rename(file_path, download_to)
+                os.rename(file_path, download_to)
+            except Exception as e:
+                print(e)
+
 
             return download_to
         
