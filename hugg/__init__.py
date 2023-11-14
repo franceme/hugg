@@ -1537,7 +1537,7 @@ try:
 
         def files(self):
             #https://www.tutorialspoint.com/How-to-create-a-tar-file-using-Python
-            files = []
+            exit_code=-1;files = []
             try:
                 file_logs = self.container.exec_run(
                     cmd = "sh -c 'ls -altr {0}'".format(self.working_dir),
@@ -1545,10 +1545,15 @@ try:
                     workdir=self.working_dir,
                     stderr=True, stdout=True
                 )
-                for file_log in file_logs:
-                    files += [
-                        file_log.split(" ")[-1]
-                    ]
+                for log_itr,file_log in enumerate(file_log):
+                    if log_itr == 0:
+                        try:
+                            exit_code = int(log.strip())
+                        except:pass
+                        try:
+                            logs += [log.decode("utf-8").split(" ")[-1]]
+                        except Exception as k:
+                            print("Error decoding output line {0}".format(str(log)))
             except Exception as e:
                 print(e)
             return files
@@ -1612,10 +1617,6 @@ try:
                     workdir=self.working_dir,
                     stderr=True, stdout=True
                 )
-                for file_log in file_logs:
-                    files += [
-                        file_log.split(" ")[-1]
-                    ]
                 return True
             except Exception as e:
                 print(e)
