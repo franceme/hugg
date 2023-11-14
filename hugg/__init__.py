@@ -1484,9 +1484,27 @@ try:
                 return
             
             try:
+                found_file_name = file_path
+                if try_anyway:
+                    refound = False
+                    cur_files = self.files()
+                    for test_file_name in [file_path, os.path.basename(file_path)]:
+                        if test_file_name in cur_files and not refound:
+                            found_file_name = test_file_name
+                            refound = True
+                            break
+                    if not refound:
+                        for cur_file in cur_files:
+                            if not refound:
+                                for test_file_name in [file_path, os.path.basename(file_path)]:
+                                    if cur_file.endswith(test_file_name) and not refound:
+                                        found_file_name = test_file_name
+                                        refound = True
+                                        break
+
                 with tarfile.open(self.location, 'r') as tar:
                     #https://stackoverflow.com/questions/20434912/is-it-possible-to-extract-single-file-from-tar-bundle-in-python
-                    tar.extract(file_path)
+                    tar.extract(test_file_name)
 
                 os.rename(file_path, download_to)
             except Exception as e:
