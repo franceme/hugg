@@ -1591,11 +1591,11 @@ try:
                     for chunk in bits:
                         f.write(chunk)
 
-                bare_result_file = os.path.basename(result_file)
+                bare_file_path = os.path.basename(file_path)
                 with tar(temp_tar()) as tarfile:
-                    tarfile.download(file_path, bare_result_file)
+                    tarfile.download(file_path, bare_file_path)
                 
-                os.rename(bare_result_file, download_to)
+                os.rename(bare_file_path, download_to)
 
             return download_to
         
