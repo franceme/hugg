@@ -1582,7 +1582,7 @@ try:
                 print("File Does Not Exist within")
                 return
 
-            with ephfile(suffix=".tar") as temp_tar:
+            with ephfile(suffix=".tar",create=False) as temp_tar:
                 with open(temp_tar(), "wb") as f:
                     bits, stat = self.container.get_archive(file_path)
                     for chunk in bits:
@@ -1597,7 +1597,7 @@ try:
             return download_to
         
         def upload(self, file_path=None,path_in_repo=None):
-            with ephfile(suffix=".tar") as temp_tar:
+            with ephfile(suffix=".tar",create=False) as temp_tar:
 
                 with tar(temp_tar()) as tar_file:
                     tar_file.upload(file_path, path_in_repo)
