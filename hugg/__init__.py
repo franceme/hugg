@@ -1550,10 +1550,11 @@ try:
                         try:
                             exit_code = int(file_log.strip())
                         except:pass
+                    else:
                         try:
                             files += [file_log.decode("utf-8").split(" ")[-1]]
                         except Exception as k:
-                            print("Error decoding output line {0}".format(str(file_log)))
+                            print("Error  decoding {1} @ line {0}".format(str(log_itr), str(file_log)))
             except Exception as e:
                 print(e)
             return files
