@@ -1545,7 +1545,7 @@ try:
                     workdir=self.working_dir,
                     stderr=True, stdout=True
                 )
-                for log_itr,file_log in enumerate(file_log):
+                for log_itr,file_log in enumerate(file_logs):
                     if log_itr == 0:
                         try:
                             exit_code = int(log.strip())
