@@ -1454,6 +1454,77 @@ except:pass
 
 
 try:
+    import tarfile
+    class tar(mem):
+        #https://docs.python.org/3/library/tarfile.html
+        def __init__(self,file_path,wraplambda=lambda foil:False):
+            super().__init__(wraplambda)
+            self.location = file_path
+
+        def files(self):
+            #https://www.tutorialspoint.com/How-to-create-a-tar-file-using-Python
+            files = []
+            if os.path.exists(self.location):
+                with tarfile.open(self.location, 'r') as tar:
+                    files = tar.getnames()
+            return files
+
+        def login(self):
+            return
+        
+        def logout(self):
+            return
+        
+        def download(self, file_path=None,download_to=None):
+            if not os.path.exists(self.location):
+                print("Tar File Does Not Exist")
+                return
+            if file_path not in self.files():
+                print("File Does Not Exist within tar")
+                return
+            
+            with tarfile.open(self.location, 'r') as tar:
+                #https://stackoverflow.com/questions/20434912/is-it-possible-to-extract-single-file-from-tar-bundle-in-python
+                tar.extract(file_path)
+
+            os.rename(file_path, download_to)
+
+            return download_to
+        
+        def upload(self, file_path=None,path_in_repo=None):
+            if not os.path.exists(file_path):
+                print("File Does Not Exist")
+                return False
+            
+            #https://stackoverflow.com/questions/2239655/how-can-files-be-added-to-a-tarfile-with-python-without-adding-the-directory-hi
+            with tarfile.open(self.location, 'a' if os.path.exists(self.location) else 'w') as tar:
+                tar.add(file_path, arcname=path_in_repo)
+
+            return True
+        
+        def delete_file(self,path_in_repo=None):
+            if not os.path.exists(self.location) or path_in_repo not in self.files():
+                return
+            backup_location = self.location + ".backup"
+
+            with tarfile.open(self.location, 'r') as original:
+                with tarfile.open(backup_location, 'w') as modified:
+                    for info in original.getmembers():
+                        if info.name == path_in_repo:
+                            continue
+                        extracted = original.extractfile(info)
+                        if not extracted:
+                            continue
+                        modified.addfile(info, extracted)
+                        os.remove(extracted.name)
+
+            os.remove(self.location)
+            os.rename(backup_location, self.location)
+            
+            return True
+except: pass
+
+try:
     from openpyxl import load_workbook
     class xcyl(mem):
         #https://python-gitlab.readthedocs.io/en/stable/index.html#installation

@@ -30,7 +30,7 @@
 				
 				// Add the IDs of extensions you want installed when the container is created.
 				"extensions": [
-					"Gruntfuggly.todo-tree", "ms-python.python", "actboy168.tasks", "dchanco.vsc-invoke", "donjayamanne.githistory", "alefragnani.Bookmarks", "hediet.vscode-drawio", "jebbs.plantuml", "k--kato.intellij-idea-keybindings", "WakaTime.vscode-wakatime", "GitHub.copilot", "hbenl.vscode-test-explorer"
+					"Gruntfuggly.todo-tree", "ms-python.python", "actboy168.tasks", "dchanco.vsc-invoke", "donjayamanne.githistory", "alefragnani.Bookmarks", "hediet.vscode-drawio", "jebbs.plantuml", "k--kato.intellij-idea-keybindings", "GitHub.copilot", "hbenl.vscode-test-explorer"
 				]
 			}
 		},
