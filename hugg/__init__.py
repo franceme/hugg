@@ -1600,13 +1600,13 @@ try:
             with ephfile(suffix=".tar",create=False) as temp_tar:
 
                 with tar(temp_tar()) as tar_file:
-                    tar_file.upload(file_path, path_in_repo)
+                    tar_file.upload(file_path, os.path.basename(file_path))
 
                 with open(temp_tar(), "rb") as in_file:
                     tar_file_bytes = in_file.read()
 
                 self.container.put_archive(
-                    path_in_repo,
+                    self.working_dir,
                     tar_file_bytes
                 )
 
