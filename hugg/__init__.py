@@ -1479,7 +1479,7 @@ try:
             if not os.path.exists(self.location):
                 print("Tar File Does Not Exist")
                 return
-            if file_path not in self.files() or (use_base and os.path.basename(file_path) not in self.files()):
+            if file_path not in self.files() or not (use_base or os.path.basename(file_path) in self.files()):
                 print("File Does Not Exist within tar")
                 return
             
