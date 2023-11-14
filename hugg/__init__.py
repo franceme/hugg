@@ -1597,7 +1597,7 @@ try:
 
                 bare_file_path = os.path.basename(file_path)
                 with tar(temp_tar()) as tarfile:
-                    tarfile.download(file_path, bare_file_path, use_base=True)
+                    tarfile.download(file_path, bare_file_path, try_anyway=True)
                 
                 os.rename(bare_file_path, download_to)
 
