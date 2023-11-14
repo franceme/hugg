@@ -1475,11 +1475,11 @@ try:
         def logout(self):
             return
         
-        def download(self, file_path=None,download_to=None):
+        def download(self, file_path=None,download_to=None,use_base=False):
             if not os.path.exists(self.location):
                 print("Tar File Does Not Exist")
                 return
-            if file_path not in self.files():
+            if file_path not in self.files() or (use_base and os.path.basename(file_path) not in self.files()):
                 print("File Does Not Exist within tar")
                 return
             
@@ -1593,7 +1593,7 @@ try:
 
                 bare_file_path = os.path.basename(file_path)
                 with tar(temp_tar()) as tarfile:
-                    tarfile.download(file_path, bare_file_path)
+                    tarfile.download(file_path, bare_file_path, use_base=True)
                 
                 os.rename(bare_file_path, download_to)
 
