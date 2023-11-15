@@ -915,7 +915,7 @@ try:
                 url += "/contents/{path}".format(path=filePath)
             return url
 
-        def __init__(self,repo,access_token,branch='master',usewget=False, create=False,wraplambda=lambda foil:False, timeout:int=60 * 10, retries:int=15):
+        def __init__(self,repo,access_token,branch_commitsha='master',usewget=False, create=False,wraplambda=lambda foil:False, timeout:int=60 * 10, retries:int=15):
             super().__init__(wraplambda)
 
             self.token = access_token
@@ -952,40 +952,22 @@ try:
         
             self.repo = self.github_access.get_repo(repo)
 
-            self.branch = None
-            if branch is not None:
-                self.branch = branch
-            
-            if self.branch is None:
-                try:
-                    self.repo.get_branch(branch="main")
-                    self.branch = "main"
-                except Exception as e:
-                    print(e)
-                    print("Branch 'main' does not exist")
-                    pass
-            
-            if self.branch is None:
-                try:
-                    self.repo.get_branch(branch="master")
-                    self.branch = "master"
-                except Exception as e:
-                    print(e)
-                    print("Branch 'master' does not exist")
-                    pass
-
-            if self.branch is None:
-                self.branch = self.repo.get_branches()[0].name
+            self.branch_commitsha = None
+            #https://stackoverflow.com/questions/59148874/get-all-the-file-contents-of-a-repo-at-specific-commit-using-pygithub
+            if branch_commitsha is not None:
+                self.branch_commitsha = branch_commitsha
+            else:
+                self.branch_commitsha = "master"
             
             self.ghub_url = githuburl(self.repo, token=self.token)
 
         def files(self):
             files = []
-            contents = self.repo.get_contents("", ref=self.branch)
+            contents = self.repo.get_contents("", ref=self.branch_commitsha)
             while contents:
                 file_content = contents.pop(0)
                 if file_content.type == "dir":
-                    contents.extend(self.repo.get_contents(file_content.path, ref=self.branch))
+                    contents.extend(self.repo.get_contents(file_content.path, ref=self.branch_commitsha))
                 else:
                     files += [file_content.path]
             return files
@@ -1023,7 +1005,7 @@ try:
                     #except: pass
 
                 if self.usewget:
-                    download_from = "{0}/raw/{1}/{2}".format(self.url(), self.branch, file_path)
+                    download_from = "{0}/raw/{1}/{2}".format(self.url(), self.branch_commitsha, file_path)
                     attempt_ktr = 0
                     while attempt_ktr != self.retries:
                         try:
@@ -1036,7 +1018,7 @@ try:
                             print(file_path)
                             attempt_ktr += 1
                 else:
-                    current_contents = self.repo.get_contents(file_path, ref=self.branch)
+                    current_contents = self.repo.get_contents(file_path, ref=self.branch_commitsha)
 
                     if encoding is not None and encoding.strip() != '' and not file_path.endswith('.zip'):
                         current_contents = current_contents.decoded_content.decode(encoding)
@@ -1060,10 +1042,10 @@ try:
                 new_contents = Path(file_path).read_text()
 
                 if path_in_repo in self: #Update
-                    contents = self.repo.get_contents(path_in_repo, ref=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L1803
-                    self.repo.update_file(contents.path, "Updating the file {}".format(path_in_repo), new_contents, contents.sha, branch=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2134
+                    contents = self.repo.get_contents(path_in_repo, ref=self.branch_commitsha) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L1803
+                    self.repo.update_file(contents.path, "Updating the file {}".format(path_in_repo), new_contents, contents.sha, branch=self.branch_commitsha) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2134
                 else: #Create #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2074
-                    self.repo.create_file(path_in_repo, "Creating the file {}".format(path_in_repo), new_contents, branch=self.branch)
+                    self.repo.create_file(path_in_repo, "Creating the file {}".format(path_in_repo), new_contents, branch=self.branch_commitsha)
             else:
                 import base64, requests
                 with open(file_path, "rb") as f:
@@ -1079,8 +1061,8 @@ try:
 
         def delete_file(self,path_in_repo=None):
             if path_in_repo in self.files():
-                contents = self.repo.get_contents(path_in_repo, ref=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L1803
-                self.repo.delete_file(path_in_repo, "Deleting the file {}".format(path_in_repo), contents.sha,branch=self.branch) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2198
+                contents = self.repo.get_contents(path_in_repo, ref=self.branch_commitsha) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L1803
+                self.repo.delete_file(path_in_repo, "Deleting the file {}".format(path_in_repo), contents.sha,branch=self.branch_commitsha) #https://github.com/PyGithub/PyGithub/blob/001970d4a828017f704f6744a5775b4207a6523c/github/Repository.py#L2198
 except:pass
 
 try:
