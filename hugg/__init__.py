@@ -1604,7 +1604,7 @@ try:
         
         def download(self, file_path=None, download_to=None):
             if file_path.replace(self.working_dir+"/", "") not in self.files():
-                print("File Does Not Exist within")
+                print("File {0} Does Not Exist within".format(file_path.replace(self.working_dir+"/", "")))
                 return
 
             with ephfile(suffix=".tar",create=False) as temp_tar:
