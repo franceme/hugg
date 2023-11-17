@@ -377,6 +377,19 @@ class mem(object):
             if "." in foil and not foil.startswith("."):
                 file_sizes[foil] = os.path.getsize(foil)
         return file_sizes
+    
+    def file_listing_write_out(self, csv_file_name:str):
+        from pathlib import Path
+        with open(csv_file_name, "w+") as writer:
+            writer.write("FileNum, FileSize(pathlib stat st_size), FileExt, FilePath\n")
+            for foil_itr, foil in enumerate(self.files()):
+                foil = Path(foil)
+                writer.write(", ".join([
+                    foil_itr,
+                    foil.stat().st_size,
+                    foil.suffix,
+                    foil.absolute()
+                ]))
 
 class localdrive(mem):
     #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
