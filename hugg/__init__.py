@@ -928,7 +928,7 @@ try:
                 url += "/contents/{path}".format(path=filePath)
             return url
 
-        def __init__(self,repo,access_token,branch_commitsha='master',usewget=False, create=False,wraplambda=lambda foil:False, timeout:int=60 * 10, retries:int=15):
+        def __init__(self,repo,access_token,branch_commitsha='master',usewget=False, branch='master',create=False,wraplambda=lambda foil:False, timeout:int=60 * 10, retries:int=15):
             super().__init__(wraplambda)
 
             self.token = access_token
@@ -969,6 +969,8 @@ try:
             #https://stackoverflow.com/questions/59148874/get-all-the-file-contents-of-a-repo-at-specific-commit-using-pygithub
             if branch_commitsha is not None:
                 self.branch_commitsha = branch_commitsha
+            elif branch is not None:
+                self.branch_commitsha = branch
             else:
                 self.branch_commitsha = "master"
             
