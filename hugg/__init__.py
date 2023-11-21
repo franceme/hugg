@@ -1607,11 +1607,12 @@ try:
                     for chunk in bits:
                         f.write(chunk)
 
-                bare_file_path = os.path.basename(file_path)
                 with tar(temp_tar()) as tarfile:
-                    tarfile.download(file_path, bare_file_path, try_anyway=True)
+                    if file_path in tarfile.files():
+                        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+                    tarfile.download(file_path, file_path, try_anyway=True)
                 
-                os.rename(bare_file_path, download_to)
+                os.rename(file_path, download_to)
 
             return download_to
         
@@ -1619,7 +1620,7 @@ try:
             with ephfile(suffix=".tar",create=False) as temp_tar:
 
                 with tar(temp_tar()) as tar_file:
-                    tar_file.upload(file_path, os.path.basename(file_path))
+                    tar_file.upload(file_path, file_path)
 
                 with open(temp_tar(), "rb") as in_file:
                     tar_file_bytes = in_file.read()
