@@ -1511,10 +1511,6 @@ try:
             return download_to
         
         def upload(self, file_path=None,path_in_repo=None):
-            if not os.path.exists(file_path):
-                print("File Does Not Exist")
-                return False
-            
             #https://stackoverflow.com/questions/2239655/how-can-files-be-added-to-a-tarfile-with-python-without-adding-the-directory-hi
             with tarfile.open(self.location, 'a' if os.path.exists(self.location) else 'w') as tar:
                 tar.add(file_path, arcname=path_in_repo)
