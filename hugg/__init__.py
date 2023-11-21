@@ -1501,8 +1501,9 @@ try:
 
                 with tarfile.open(self.location, 'r') as tar:
                     #https://stackoverflow.com/questions/20434912/is-it-possible-to-extract-single-file-from-tar-bundle-in-python
-                    tar.extract(test_file_name)
+                    tar.extract(found_file_name)
 
+                os.makedirs(os.path.dirname(download_to), exist_ok=True)
                 os.rename(found_file_name, download_to)
             except Exception as e:
                 print(e)
