@@ -390,6 +390,35 @@ class mem(object):
                     foil.suffix,
                     foil.absolute()
                 ]))
+    
+    @staticmethod
+    def from_splych(core_file_name):
+        try:
+            import splych
+            full_file = splych.file_stitch(core_file_name)
+            split = os.path.splitext(full_file)
+
+            if len(split) > 1 and split[-1] in available_types().keys():
+                return available_types()[split[-1]]()
+            else:
+                return full_file
+        except:
+            return None
+
+    @staticmethod
+    def to_splych(file_name, chunks_size=None, delete_og=False):
+        try:
+            import splych
+            return file_split(
+                file=file_name,
+                parts=None,
+                chunk_size=chunks_size,
+                delete_original=delete_og,
+                generate_hashfile=False,
+                generate_config=False
+            )
+        except:
+            return []
 
 class localdrive(mem):
     #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
@@ -1306,9 +1335,7 @@ try:
                 if search_limits.remaining < 2:
                     print("Waiting until: {0}".format(search_limits.reset))
                     pause.until(search_limits.reset)
-
 except:pass
-
 
 try:
     from gitlab import Gitlab
@@ -1449,7 +1476,6 @@ try:
             return True
 except:pass
 
-
 try:
     import tarfile
     class tar(mem):
@@ -1539,7 +1565,6 @@ try:
             
             return True
 except: pass
-
 
 try:
     import docker, tarfile
@@ -1646,7 +1671,6 @@ try:
                 return True
 except: pass
 
-
 try:
     from openpyxl import load_workbook
     class xcyl(mem):
@@ -1703,7 +1727,6 @@ try:
 
             return True
 except: pass
-
 
 try:
     import pandas as pd
@@ -1820,7 +1843,7 @@ try:
     from ephfile import ephfile
     import pydbhub.dbhub as dbhub
 
-    class dbhub(mem): #https://github.dev/franceme/xcyl
+    class dbhub_repo(mem): #https://github.dev/franceme/xcyl
         #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
         #https://python-gitlab.readthedocs.io/en/stable/api-usage.html
         def __init__(self, repo:str, access_token: str, owner: str, table_name: str=None):
@@ -1973,3 +1996,100 @@ def sync_two_repos(new_repo, old_repo,delay_sec=2):
         print(".",end='',flush=True)
     
     print("Completed")
+
+def convert_size_to_bytes(size_str):
+    try:
+        #https://stackoverflow.com/questions/44307480/convert-size-notation-with-units-100kb-32mb-to-number-of-bytes-in-python
+        """Convert human filesizes to bytes.
+
+        Special cases:
+        - singular units, e.g., "1 byte"
+        - byte vs b
+        - yottabytes, zetabytes, etc.
+        - with & without spaces between & around units.
+        - floats ("5.2 mb")
+
+        To reverse this, see hurry.filesize or the Django filesizeformat template
+        filter.
+
+        :param size_str: A human-readable string representing a file size, e.g.,
+        "22 megabytes".
+        :return: The number of bytes represented by the string.
+        """
+        multipliers = {
+            'kilobyte':  1024,
+            'megabyte':  1024 ** 2,
+            'gigabyte':  1024 ** 3,
+            'terabyte':  1024 ** 4,
+            'petabyte':  1024 ** 5,
+            'exabyte':   1024 ** 6,
+            'zetabyte':  1024 ** 7,
+            'yottabyte': 1024 ** 8,
+            'kb': 1024,
+            'mb': 1024**2,
+            'gb': 1024**3,
+            'tb': 1024**4,
+            'pb': 1024**5,
+            'eb': 1024**6,
+            'zb': 1024**7,
+            'yb': 1024**8,
+        }
+
+        for suffix in multipliers:
+            size_str = size_str.lower().strip().strip('s')
+            if size_str.lower().endswith(suffix):
+                return int(float(size_str[0:-len(suffix)]) * multipliers[suffix])
+        else:
+            if size_str.endswith('b'):
+                size_str = size_str[0:-1]
+            elif size_str.endswith('byte'):
+                size_str = size_str[0:-4]
+        return int(size_str)
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info();fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+        msg = ":> Hit an unexpected error {0} @ {1}:{2}".format(e, fname, exc_tb.tb_lineno)
+        print(msg)
+        return float("inf")
+
+def available_types():
+    storage_types = {}
+    storage_types[":local"] = localdrive
+    try:
+        from huggingface_hub import HfApi;
+        storage_types[":face"] = face
+    except:pass
+    try:
+        from github import Github,Requester
+        storage_types[":ghub"] = ghub
+    except:pass
+    try:
+        from gitlab import Gitlab
+        storage_types[":glab"] = glab
+    except:pass
+    try:
+        import ruamel.std.zipfile as zipfileextra
+        storage_types[".zip"] = zyp
+    except:pass
+    try:
+        import tarfile
+        storage_types[".tar"] = tar
+    except:pass
+    try:
+        import docker, tarfile
+        storage_types[":dock"] = dock
+    except:pass
+    try:
+        from openpyxl import load_workbook
+        storage_types[".xlsx"] = xcyl
+    except:pass
+    try:
+        import pandas as pd
+        import mystring as mys
+        import sqlite3
+        storage_types[".sqlite"] = sqlite
+    except:pass
+    try:
+        import pydbhub.dbhub as dbhub
+        storage_types[":dbhub"] = dbhub_repo
+    except:pass
+    return storage_typs
