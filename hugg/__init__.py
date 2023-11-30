@@ -1628,7 +1628,7 @@ try:
 
             with ephfile(suffix=".tar",create=False) as temp_tar:
                 with open(temp_tar(), "wb") as f:
-                    bits, stat = self.container.get_archive(file_path)
+                    bits, stat = self.container.get_archive(os.path.join(self.working_dir, file_path))
                     for chunk in bits:
                         f.write(chunk)
 
