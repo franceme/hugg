@@ -1527,10 +1527,7 @@ try:
 
                 with tarfile.open(self.location, 'r') as tar:
                     #https://stackoverflow.com/questions/20434912/is-it-possible-to-extract-single-file-from-tar-bundle-in-python
-                    tar.extract(found_file_name)
-
-                os.makedirs(os.path.dirname(download_to), exist_ok=True)
-                os.rename(found_file_name, download_to)
+                    tar.extract(found_file_name, path=os.path.dirname(download_to))
             except Exception as e:
                 print(e)
 
@@ -1633,11 +1630,12 @@ try:
                         f.write(chunk)
 
                 with tar(temp_tar()) as tarfile:
-                    if file_path in tarfile.files():
-                        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-                    tarfile.download(file_path, file_path, try_anyway=True)
-                
-                os.rename(file_path, download_to)
+                    try:
+                        if file_path in tarfile.files():
+                            os.makedirs(os.path.dirname(download_to), exist_ok=True)
+                            tarfile.download(file_path, download_to, try_anyway=True)
+                    except Exception as e:
+                        print(e)
 
             return download_to
         
