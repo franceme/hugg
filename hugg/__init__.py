@@ -1974,7 +1974,7 @@ def redundant(klass):
     
     raise Exception("No Mirrors are available")
 
-def sync_two_repos(new_repo, old_repo,delay_sec=2):
+def sync_two_repos(new_repo, old_repo,delay_sec=2, delete_old=False):
     import time
     delay = lambda:time.sleep(delay_sec)
 
@@ -1986,12 +1986,13 @@ def sync_two_repos(new_repo, old_repo,delay_sec=2):
         delay()
         print(".",end='',flush=True)
 
-    print("\nDeleting Old Files")
-    for foil in old_repo.files():
-        if foil not in new_repo.files():
-            del old_repo[foil]
-            delay()
-        print(".",end='',flush=True)
+    if delete_old:
+        print("\nDeleting Old Files")
+        for foil in old_repo.files():
+            if foil not in new_repo.files():
+                del old_repo[foil]
+                delay()
+            print(".",end='',flush=True)
     
     print("Completed")
 
