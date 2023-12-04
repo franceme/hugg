@@ -1632,7 +1632,10 @@ try:
                 with tar(temp_tar()) as tarfile:
                     try:
                         if file_path in tarfile.files():
-                            os.makedirs(os.path.dirname(download_to), exist_ok=True)
+                            dir_name = os.path.dirname(download_to).strip()
+                            if dir_name != '':
+                                os.makedirs(dir_name, exist_ok=True)
+
                             tarfile.download(file_path, download_to, try_anyway=True)
                     except Exception as e:
                         print(e)
