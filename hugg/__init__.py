@@ -1689,6 +1689,12 @@ try:
         def logout(self):
             return
 
+        def load(self, sheet=None):
+            if file_path not in self.files():
+                return None
+
+            return pd.read_excel(self.path, sheet_name=file_path, engine="openpyxl")
+
         def download(self, file_path=None, download_to=None):
             if file_path not in self.files():
                 return None
