@@ -132,6 +132,14 @@ class mem(object):
         return self.download(item) if item in self else None
     def __len__(self):
         return len(self.files())
+    def concat(self,file,string):
+        text = self.load_text(file)
+        text += str("\n"+string)
+        with open(file, "w+") as writer:
+            writer.write(text)
+        self.upload(file,file)
+        try:os.remove(file)
+        except:pass
     def outline(self):
         import pathlib
         output = {}
