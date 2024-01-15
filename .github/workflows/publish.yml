@@ -27,7 +27,7 @@ jobs:
         password: ${{ secrets.PYPI_API_TOKEN }}
 
     - name: Repository Dispatch
-      if: true
+      if: false
       uses: peter-evans/repository-dispatch@v1
       with:
         token: ${{ secrets.REPO_ACCESS_TOKEN }}
