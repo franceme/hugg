@@ -2109,3 +2109,23 @@ def available_types():
         storage_types[":dbhub"] = dbhub_repo
     except:pass
     return storage_typs
+
+class eph_mgr(object):
+    def __init__(self,repo:mem=None, *files):
+        self.repo = repo
+        self.files = {}
+        for file in files:
+            self.files[file] = None
+
+    def __enter__(self):
+        for file_name = list(self.files.keys()):
+            self.files[
+                os.path.basename(file_name).replace(".py","")
+            ] = self.repo.impor(file_name, delete=True)
+
+        return self
+
+    def __exit__(self, a=None,b=None,c=None):
+        for foil in self.files:
+            if os.path.exists(foil):
+                os.remove(foil)
