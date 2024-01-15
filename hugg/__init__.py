@@ -2118,7 +2118,7 @@ class eph_mgr(object):
             self.files[file] = None
 
     def __enter__(self):
-        for file_name = list(self.files.keys()):
+        for file_name in list(self.files.keys()):
             self.files[
                 os.path.basename(file_name).replace(".py","")
             ] = self.repo.impor(file_name, delete=True)
@@ -2126,6 +2126,13 @@ class eph_mgr(object):
         return self
 
     def __exit__(self, a=None,b=None,c=None):
+        get_folder = lambda path:os.path.abspath(path).replace(os.path.basename(path),"")
         for foil in self.files:
-            if os.path.exists(foil):
-                os.remove(foil)
+            try:
+                if os.path.exists(foil):
+                    os.remove(foil)
+
+                folder = get_folder(foil)
+                if len(os.listdir(folder)) == 0:
+                    os.rmdir(folder)
+            except:pass
