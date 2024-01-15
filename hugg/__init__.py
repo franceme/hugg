@@ -2117,6 +2117,12 @@ class eph_mgr(object):
         for file in files:
             self.files[file] = None
 
+    def __getitem__(self, key):
+        output = None
+        if key in self.files:
+            output = self.files[key]
+        return output
+
     def __enter__(self):
         for file_name in list(self.files.keys()):
             self.files[
