@@ -246,6 +246,39 @@ class mem(object):
 
         return ''.join(contents)
 
+    def load_binary(self,file):
+        if file not in self.files():
+            print("FILE IS NOT AVAILABLE")
+            return None
+        
+        cur_path = os.path.abspath(self[file])
+        with open(cur_path, 'rb') as reader:
+            contents = reader.read()
+        os.remove(cur_path)
+
+        return contents
+    
+    def try_load(self,file):
+        output = {"contents":None,"isbinary":None}
+
+        if file not in self.files():
+            print("FILE IS NOT AVAILABLE")
+            return output
+
+        try:
+            contents = self.load_text(file)
+            output["contents"] = contents
+            output["isbinary"] = False
+        except:pass
+
+        try:
+            contents = self.load_binary(file)
+            output["contents"] = contents
+            output["isbinary"] = True
+        except:pass
+
+        return output
+
     def load_json(self,file):
         if file not in self.files():
             print("FILE IS NOT AVAILABLE")
@@ -427,6 +460,25 @@ class mem(object):
             )
         except:
             return []
+
+    def filesystem(self):
+        #https://www.pyfilesystem.org/
+        #https://stackoverflow.com/questions/51508179/how-to-construct-an-in-memory-virtual-file-system-and-then-write-this-structure
+        import fs
+        import fs.copy
+        mem_fs = fs.open_fs("mem://")
+        for file in self.files():
+            try: mem_fs.makedirs(os.path.dirname(file))
+            except:pass
+
+            contents = None
+            try: contents = self.try_load(file)
+            except:pass
+
+            if contents is not None and contents['contents'] is not None:
+                with mem_fs.open(file, "wb+" if contents['isbinary'] else "w+") as writer:
+                    writer.write(contents['contents'])
+        return mem_fs
 
 class localdrive(mem):
     #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
