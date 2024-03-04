@@ -9,6 +9,9 @@ else:
 # https://pypi.org/project/ruamel.std.zipfile/
 from ephfile import ephfile
 from typing import List
+from fileinput import FileInput as finput
+
+fput = lambda foil, inplace=False, backup=None:finput(files=foil, inplace=inplace, backup=backup)
 
 """
 class custom(mem):
@@ -2183,6 +2186,9 @@ class eph_mgr(object):
 
         return self
 
+    def __exists(self, file):
+        return file in list(self.files.keys())
+
     def __exit__(self, a=None,b=None,c=None):
         get_folder = lambda path:os.path.abspath(path).replace(os.path.basename(path),"")
         for foil in self.files:
@@ -2194,3 +2200,10 @@ class eph_mgr(object):
                 if len(os.listdir(folder)) == 0:
                     os.rmdir(folder)
             except:pass
+
+    #^=	.__ixor__(self, other)
+    def __ixor__(self, file_name:str):
+        if self.__exists(file_name):
+            self.download(file_name, file_name)
+            return fput(file_name)
+        return None
