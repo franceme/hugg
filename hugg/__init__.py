@@ -237,6 +237,24 @@ class mem(object):
 
         return mod
 
+    def load_by_ext(self, ext:str):
+        formatting = {
+            ".json":self.load_json,
+            ".csv":self.load_csv,
+            ".pkl":self.load_pkl,
+            ".sqlite":self.load_sqlite,
+            ".xlsx":self.load_xcyl,
+            ".zip":self.load_zip,
+            ".json":self.load_json,
+        }
+        if ext is None:
+            return None
+
+        if ext not in formatting:
+            return self.try_load
+
+        return formatting[ext]
+
     def load_text(self,file):
         if file not in self.files():
             print("FILE IS NOT AVAILABLE")
