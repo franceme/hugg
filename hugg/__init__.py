@@ -487,7 +487,8 @@ class mem(object):
         #https://stackoverflow.com/questions/51508179/how-to-construct-an-in-memory-virtual-file-system-and-then-write-this-structure
         import fs
         import fs.copy
-        mem_fs = fs.open_fs("mem://")
+        from fs.tempfs import TempFS
+        mem_fs = fs.open_fs("temp://")
         for file in self.files():
             try: mem_fs.makedirs(os.path.dirname(file))
             except:pass
