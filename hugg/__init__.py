@@ -12,34 +12,8 @@ from typing import List
 from fileinput import FileInput as finput
 
 fput = lambda foil, inplace=False, backup=None:finput(files=foil, inplace=inplace, backup=backup)
+from fs.base import FS 
 
-"""
-class custom(mem):
-    #https://docs.python.org/3/library/zipfile.html
-    def __init__(self,wraplambda=lambda foil:False):
-        super().__init__(wraplambda)
-
-    def url(self):
-        return
-
-    def login(self):
-        return
-    
-    def logout(self):
-        return
-
-    def files(self):
-        return self.files
-    
-    def upload(self, file_path=None,path_in_repo=None):
-        pass
-    
-    def download(self, file_path=None,download_to=None):
-        pass
-    
-    def delete_file(self,path_in_repo=None):
-        return False
-"""
 def isUTF(file):
     try:
         import codecs
@@ -48,6 +22,8 @@ def isUTF(file):
     except UnicodeDecodeError:
         return False
 
+#Other repos
+#https://www.pyfilesystem.org/page/index-of-filesystems/
 
 def split(a, n):
     """
@@ -59,10 +35,26 @@ def split(a, n):
     k, m = divmod(len(a), n)
     return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
 
-class mem(object):
-    def __init__(self, wraplambda = lambda foil:False):
-        self.dowraplambda = lambda foil:foil != None and wraplambda(foil) 
+#Class to override
+#https://github.com/PyFilesystem/pyfilesystem2/blob/master/fs/base.
+## How to implement guide
+## https://docs.pyfilesystem.org/en/latest/implementers.html
 
+##OS File Interface Example
+##https://github.com/PyFilesystem/pyfilesystem2/blob/master/fs/osfs.py
+class mem(FS):
+    def __init__(self, wraplambda = lambda foil:False):
+        super.__init__()
+        self.dowraplambda = lambda foil:foil != None and wraplambda(foil) 
+##Required Methods to override
+getinfo() Get info regarding a file or directory.
+listdir() Get a list of resources in a directory.
+makedir() Make a directory.
+openbin() Open a binary file.
+remove() Remove a file.
+removedir() Remove a directory.
+setinfo() Set resource information.
+##Required Methods to override
     @abstractmethod
     def url(self):
         pass
@@ -91,27 +83,6 @@ class mem(object):
     def delete_file(self,path_in_repo=None):
         pass
 
-    """
-    def download(self, file_path=None,download_to=None):
-        self.download(file_path, download_to)
-
-        if self.dowraplambda(download_to) is True:
-            download_to = self.unwrap(download_to)
-        
-        return download_to
-
-    def upload(self, path=None,path_in_repo=None):
-        from copy import deepcopy as dc
-        og_path,og_path_in_repo = dc(path),dc(path_in_repo)
-        if self.dowraplambda(path) is True:
-            try:
-                path = self.wrap(path)
-                path_in_repo += ".nosj"
-            except:
-                path,path_in_repo = og_path,og_path_in_repo
-
-        return self.upload(path, path_in_repo)
-    """
     def __enter__(self):
         self.login()
         return self
@@ -501,73 +472,6 @@ class mem(object):
                     writer.write(contents['contents'])
         return mem_fs
 
-class localdrive(mem):
-    #https://python-gitlab.readthedocs.io/en/stable/index.html#installation
-    #https://python-gitlab.readthedocs.io/en/stable/api-usage.html
-    def __init__(self,path:str=os.curdir,wraplambda=lambda foil:False):
-        super().__init__(wraplambda)
-        self.path = path
-
-    def files(self):
-        return [os.path.join(dp, f) for dp, dn, filenames in os.walk(self.path) for f in filenames if os.path.isfile(f)]
-
-    def login(self):
-        return
-    
-    def logout(self):
-        return
-    
-    def download(self, file_path=None,download_to=None):
-        download_to = download_to or os.path.basename(file_path)
-        shutil.copy(file_path, download_to)
-        return download_to
-    
-    def upload(self, file_path=None,path_in_repo=None):
-        shutil.copy(file_path, path_in_repo)
-        return True
-    
-    def delete_file(self,path_in_repo=None):
-        if path_in_repo in self.files():
-            os.remove(path_in_repo)
-        return True
-
-class subRemote(mem):
-    #https://docs.python.org/3/library/zipfile.html
-    def __init__(self,identifyFile:str,wraplambda=lambda foil:False):
-        super().__init__(wraplambda)
-        self.identifyFile = identifyFile
-        __name__ = ''
-
-        self.files = []
-        self.download = None
-
-        if os.path.exists(self.identifyFile):
-            self.mod = __import__(self.identifyFile)
-            self.download = self.mod.download
-            self.files = self.mod.info()
-
-    def url(self):
-        self.location = zyp_file
-
-    def login(self):
-        return
-    
-    def logout(self):
-        return
-
-    def files(self):
-        return self.files
-    
-    def upload(self, file_path=None,path_in_repo=None):
-        return False
-    
-    def download(self, file_path=None,download_to=None):
-        if self.download == None:
-            return False
-        self.download(file_path, download_to)
-    
-    def delete_file(self,path_in_repo=None):
-        return False
 
 try:
     from huggingface_hub import HfApi
@@ -1505,143 +1409,6 @@ try:
                     branch=self.branch,
                     commit_message="Auto Delete From Repo"
                 )
-except: pass
-
-try:
-    from zipfile import ZipFile
-    import ruamel.std.zipfile as zipfileextra
-    class zyp(mem):
-        #https://docs.python.org/3/library/zipfile.html
-        def __init__(self,zyp_file,wraplambda=lambda foil:False):
-            super().__init__(wraplambda)
-            self.location = zyp_file
-
-        def files(self):
-            if not os.path.exists(self.location):
-                return []
-            return ZipFile(self.location).namelist()
-
-        def login(self):
-            return
-        
-        def logout(self):
-            return
-        
-        def download(self, file_path=None,download_to=None):
-            if not os.path.exists(self.location):
-                print("Zip File Does Not Exist")
-                return
-
-            download_to = download_to or os.path.basename(file_path)
-            with ZipFile(self.location) as z:
-                print(download_to)
-                with open(download_to, 'wb') as f:
-                    f.write(z.read(file_path))
-            return download_to
-        
-        def upload(self, file_path=None,path_in_repo=None):
-            editing_mode = 'a' if os.path.exists(self.location) else 'w'
-
-            if path_in_repo in self.files():
-                del self[path_in_repo]
-
-            with ZipFile(self.location,editing_mode) as myzip:
-                myzip.write(file_path,path_in_repo)
-            return True
-        
-        def delete_file(self,path_in_repo=None):
-            if not os.path.exists(self.location):
-                return
-
-            zipfileextra.delete_from_zip_file(self.location, file_names=[path_in_repo])
-            return True
-except:pass
-
-try:
-    import tarfile
-    class tar(mem):
-        #https://docs.python.org/3/library/tarfile.html
-        def __init__(self,file_path,wraplambda=lambda foil:False):
-            super().__init__(wraplambda)
-            self.location = file_path
-
-        def files(self):
-            #https://www.tutorialspoint.com/How-to-create-a-tar-file-using-Python
-            files = []
-            if os.path.exists(self.location):
-                with tarfile.open(self.location, 'r') as tar:
-                    files = tar.getnames()
-            return files
-
-        def login(self):
-            return
-        
-        def logout(self):
-            return
-        
-        def download(self, file_path=None,download_to=None,try_anyway=False):
-            if not os.path.exists(self.location):
-                print("Tar File Does Not Exist")
-                return
-            if file_path not in self.files() and not try_anyway:
-                print("File Does Not Exist within tar")
-                return
-            
-            try:
-                found_file_name = file_path
-                if try_anyway:
-                    refound = False
-                    cur_files = self.files()
-                    for test_file_name in [file_path, os.path.basename(file_path)]:
-                        if test_file_name in cur_files and not refound:
-                            found_file_name = test_file_name
-                            refound = True
-                            break
-                    if not refound:
-                        for cur_file in cur_files:
-                            if not refound:
-                                for test_file_name in [file_path, os.path.basename(file_path)]:
-                                    if cur_file.endswith(test_file_name) and not refound:
-                                        found_file_name = test_file_name
-                                        refound = True
-                                        break
-
-                with tarfile.open(self.location, 'r') as tar:
-                    #https://stackoverflow.com/questions/20434912/is-it-possible-to-extract-single-file-from-tar-bundle-in-python
-                    tar.extract(found_file_name, path=os.path.dirname(download_to))
-            except Exception as e:
-                print(e)
-
-
-            return download_to
-        
-        def upload(self, file_path=None,path_in_repo=None):
-            #https://stackoverflow.com/questions/2239655/how-can-files-be-added-to-a-tarfile-with-python-without-adding-the-directory-hi
-            with tarfile.open(self.location, 'a' if os.path.exists(self.location) else 'w') as tar:
-                tar.add(file_path, arcname=path_in_repo)
-
-            return True
-        
-        def delete_file(self,path_in_repo=None):
-            if not os.path.exists(self.location) or path_in_repo not in self.files():
-                return
-            backup_location = self.location + ".backup"
-
-            with tarfile.open(self.location, 'r') as original:
-                with tarfile.open(backup_location, 'w') as modified:
-                    for info in original.getmembers():
-                        if info.name == path_in_repo:
-                            continue
-                        extracted = original.extractfile(info)
-                        if not extracted:
-                            continue
-                        modified.addfile(info, extracted)
-                        os.remove(extracted.name)
-
-            os.remove(self.location)
-            os.rename(backup_location, self.location)
-            
-            return True
 except: pass
 
 try:
