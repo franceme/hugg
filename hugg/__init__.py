@@ -47,13 +47,39 @@ class mem(FS):
         super.__init__()
         self.dowraplambda = lambda foil:foil != None and wraplambda(foil) 
 ##Required Methods to override
-getinfo() Get info regarding a file or directory.
-listdir() Get a list of resources in a directory.
-makedir() Make a directory.
-openbin() Open a binary file.
-remove() Remove a file.
-removedir() Remove a directory.
-setinfo() Set resource information.
+getinfo() Get info regarding a file or directory. #https://github.com/PyFilesystem/pyfilesystem2/blob/8ed9dc495d8ba2f83fbb2a1145d34d92e13644be/fs/osfs.py#L279
+def getinfo(self, path, namespaces=None):
+    # type: (Text, Optional[Collection[Text]]) -> Info
+
+listdir() Get a list of resources in a directory. #https://github.com/PyFilesystem/pyfilesystem2/blob/8ed9dc495d8ba2f83fbb2a1145d34d92e13644be/fs/osfs.py#L311
+def listdir(self, path):
+    # type: (Text) -> List[Text]
+
+makedir() Make a directory. #https://github.com/PyFilesystem/pyfilesystem2/blob/8ed9dc495d8ba2f83fbb2a1145d34d92e13644be/fs/osfs.py#L321
+def makedir(
+    self,  # type: _O
+    path,  # type: Text
+    permissions=None,  # type: Optional[Permissions]
+    recreate=False,  # type: bool
+):
+    # type: (...) -> SubFS[_O]
+
+openbin() Open a binary file. #https://github.com/PyFilesystem/pyfilesystem2/blob/8ed9dc495d8ba2f83fbb2a1145d34d92e13644be/fs/osfs.py#L344
+def openbin(self, path, mode="r", buffering=-1, **options):
+    # type: (Text, Text, int, **Any) -> BinaryIO
+
+remove() Remove a file.#https://github.com/PyFilesystem/pyfilesystem2/blob/8ed9dc495d8ba2f83fbb2a1145d34d92e13644be/fs/osfs.py#L361
+def remove(self, path):
+    # type: (Text) -> None  
+
+removedir() Remove a directory.#https://github.com/PyFilesystem/pyfilesystem2/blob/8ed9dc495d8ba2f83fbb2a1145d34d92e13644be/fs/osfs.py#L380
+def removedir(self, path):
+    # type: (Text) -> None
+
+setinfo() Set resource information.#https://github.com/PyFilesystem/pyfilesystem2/blob/8ed9dc495d8ba2f83fbb2a1145d34d92e13644be/fs/osfs.py#L660
+def setinfo(self, path, info):
+    # type: (Text, RawInfo) -> None
+
 ##Required Methods to override
     @abstractmethod
     def url(self):
