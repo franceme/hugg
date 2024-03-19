@@ -35,7 +35,7 @@ long_description = pathlib.Path(f"{here}/README.md").read_text(encoding='utf-8')
 REQUIRES_PYTHON = '>=3.8.0'
 RELEASE = "?"
 entry_point = f"src.{NAME}"
-VERSION = "0.2.60"
+VERSION = "0.2.61"
 
 def zip_program(outputName:str = f"{NAME}.zip"):
 	#http://blog.ablepear.com/2012/10/bundling-python-files-into-stand-alone.html
@@ -101,6 +101,7 @@ elif selfArg('upload'):
 elif selfArg('zip'):
 	sys.exit(zip_program())
 # endregion
+
 # region Setup
 extra_requires = {
 	'splych':["splych"],
