@@ -2219,9 +2219,12 @@ class eph_mgr(object):
             lyst = total_files
 
         for file_name in lyst:
-            self.files[
-                os.path.basename(file_name).replace(".py","")
-            ] = self.repo.impor(file_name, delete=True)
+            if file_name.endswith(".py"):
+                self.files[
+                    os.path.basename(file_name).replace(".py","")
+                ] = self.repo.impor(file_name, delete=True)
+            else:
+                self.files[os.path.basename(file_name)] = file_name
 
         return self
 
