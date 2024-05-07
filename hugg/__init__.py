@@ -2199,7 +2199,25 @@ class eph_mgr(object):
         return output
 
     def __enter__(self):
-        lyst = list(self.repo.files()) if self.load_all else list(self.files.keys())
+        total_files = list(self.repo.files())
+        if self.load_all:
+            import re
+            lyst = []
+            matching_prefix = 'r:'
+
+            for files_key in list(self.files.keys()):
+                if files_key.startswith(matching_prefix):
+                    files_key = files_key.replace(matching_prefix,'')
+                    lyst += [
+                        x for x in total_files if re.match(files_key, x) is not None
+                    ]
+                else:
+                    lyst += [
+                        files_key
+                    ]
+        else:
+            lyst = total_files
+
         for file_name in lyst:
             self.files[
                 os.path.basename(file_name).replace(".py","")
