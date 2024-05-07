@@ -2199,7 +2199,7 @@ class eph_mgr(object):
         return output
 
     def __enter__(self):
-        lyst = list(self.repo.files) if self.load_all else list(self.files.keys())
+        lyst = list(self.repo.files()) if self.load_all else list(self.files.keys())
         for file_name in lyst:
             self.files[
                 os.path.basename(file_name).replace(".py","")
