@@ -2185,10 +2185,9 @@ def available_types():
     return storage_typs
 
 class eph_mgr(object):
-    def __init__(self,repo:mem=None, load_all=False, *files):
+    def __init__(self,repo:mem=None, *files):
         self.repo = repo
         self.files = {}
-        self.load_all = load_all
         for file in files:
             self.files[file] = None
 
@@ -2200,23 +2199,21 @@ class eph_mgr(object):
 
     def __enter__(self):
         total_files = list(self.repo.files())
-        if self.load_all:
-            import re
-            lyst = []
-            matching_prefix = 'r:'
 
-            for files_key in list(self.files.keys()):
-                if files_key.startswith(matching_prefix):
-                    files_key = files_key.replace(matching_prefix,'')
-                    lyst += [
-                        x for x in total_files if re.match(files_key, x) is not None
-                    ]
-                else:
-                    lyst += [
-                        files_key
-                    ]
-        else:
-            lyst = total_files
+        lyst = []
+        import re
+        matching_prefix = 'r:'
+
+        for files_key in list(self.files.keys()):
+            if files_key.startswith(matching_prefix):
+                files_key = files_key.replace(matching_prefix,'')
+                lyst += [
+                    x for x in total_files if re.match(files_key, x) is not None
+                ]
+            else:
+                lyst += [
+                    files_key
+                ]
 
         for file_name in lyst:
             if file_name.endswith(".py"):
